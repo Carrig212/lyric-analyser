@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import java.time.Duration;
 import java.util.Map;
 
@@ -13,6 +14,7 @@ import java.util.Map;
 @NoArgsConstructor // For JPA purposes
 @Entity
 public class Track extends Music {
+    @ManyToOne
     @JoinColumn(name = "albumId")
     private Album album;
 
