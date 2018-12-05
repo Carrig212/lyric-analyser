@@ -9,8 +9,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
+import java.util.Collection;
 import java.util.Date;
-import java.util.Set;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -19,7 +19,7 @@ import java.util.Set;
 public class Album extends Music {
     @NotNull
     @OneToMany(mappedBy = "album")
-    private Set<Track> tracks;
+    private Collection<Track> tracks;
 
     @NotNull
     @ManyToOne

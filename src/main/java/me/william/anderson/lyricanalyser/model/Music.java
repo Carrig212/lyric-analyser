@@ -5,8 +5,8 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.Collection;
 import java.util.Date;
-import java.util.Set;
 
 @Data
 @NoArgsConstructor // For JPA purposes
@@ -20,7 +20,7 @@ abstract class Music {
     private String name;
 
     @NotNull
-    private String apiId;
+    private long apiId;
 
     private int wordCount;
     private int uniqueWordCount;
@@ -28,7 +28,7 @@ abstract class Music {
 
     @NotNull
     @ElementCollection
-    private Set<String> genres;
+    private Collection<String> genres;
 
     @NotNull
     private int rating;
