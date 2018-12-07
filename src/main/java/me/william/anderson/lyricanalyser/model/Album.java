@@ -10,7 +10,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
-import java.util.Date;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -30,7 +29,7 @@ public class Album extends Music {
     private String releaseType;
 
     @NotNull
-    private Date releaseDate;
+    private String releaseDate;
 
     @NotNull
     private String label;

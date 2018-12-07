@@ -9,7 +9,6 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotNull;
-import java.time.Duration;
 import java.util.Map;
 
 @Data
@@ -26,5 +25,5 @@ public class Track extends Music {
     private Map<String, Integer> wordFrequencies;
 
     @NotNull
-    private Duration duration;
+    private int duration;
 }

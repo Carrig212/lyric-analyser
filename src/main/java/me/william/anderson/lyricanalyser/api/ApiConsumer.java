@@ -16,7 +16,7 @@ import static me.william.anderson.lyricanalyser.api.ApiConstants.*;
 
 @Component
 @PropertySource("api.properties")
-public class Consumer {
+public class ApiConsumer {
     @Value("${api.key}")
     private String apiKey;
 
