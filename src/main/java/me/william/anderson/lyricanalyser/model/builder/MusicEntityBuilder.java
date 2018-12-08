@@ -94,7 +94,7 @@ public class MusicEntityBuilder {
     private Map<String, Integer> buildLyrics(long track_id) throws StatusCodeException, UnirestException {
         var rawLyrics = consumer.getTrackLyrics(track_id);
 
-        return analyser.cleanLyrics(rawLyrics);
+        return analyser.countUniqueWords(rawLyrics);
     }
 
     private ArrayList<String> parseGenres(JSONObject jsonArtist) {

@@ -1,6 +1,6 @@
 package me.william.anderson.lyricanalyser.api;
 
-final class ApiConstants {
+public final class ApiConstants {
     // Base URL for all requests
     static final String URL = "https://api.musixmatch.com/ws/1.1/";
 
@@ -17,4 +17,7 @@ final class ApiConstants {
 
     // Pagination
     static final int PAGE_SIZE = 100;
+
+    // Disclaimer
+    public static final String DISCLAIMER = "\n\n******* This Lyrics is NOT for Commercial use *******";
 }
