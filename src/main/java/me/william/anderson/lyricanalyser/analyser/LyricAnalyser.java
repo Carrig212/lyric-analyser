@@ -1,6 +1,5 @@
 package me.william.anderson.lyricanalyser.analyser;
 
-import me.william.anderson.lyricanalyser.api.ApiConstants;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -10,18 +9,15 @@ import java.util.regex.Pattern;
 @Component
 public class LyricAnalyser {
 
-    private static final Pattern regex = Pattern.compile("[a-z']+");
+    private static final Pattern REGEX = Pattern.compile("[a-z']+");
+    private static final String DISCLAIMER = "\n\n******* This Lyrics is NOT for Commercial use *******";
 
-    public HashMap<String, Integer> countUniqueWords(String rawLyrics) {
-        var words = cleanLyrics(rawLyrics);
+    public HashMap<String, Integer> countUniqueWords(String rawString) {
+        var words = cleanLyrics(rawString);
         var uniqueWords = new HashMap<String, Integer>();
 
         for (var word : words) {
-            if (!uniqueWords.containsKey(word)) {
-                uniqueWords.put(word, 1);
-            } else {
-                uniqueWords.put(word, uniqueWords.get(word) + 1);
-            }
+            uniqueWords.put(word, !uniqueWords.containsKey(word) ? 1 : uniqueWords.get(word) + 1);
         }
 
         return uniqueWords;
@@ -30,9 +26,9 @@ public class LyricAnalyser {
     private ArrayList<String> cleanLyrics(String rawString) {
         var words = new ArrayList<String>();
 
-        rawString = rawString.substring(0, rawString.indexOf(ApiConstants.DISCLAIMER));
+        rawString = rawString.substring(0, rawString.indexOf(DISCLAIMER));
         rawString = rawString.toLowerCase();
-        var matcher = regex.matcher(rawString);
+        var matcher = REGEX.matcher(rawString);
 
         while (matcher.find()) {
             words.add(matcher.group());
