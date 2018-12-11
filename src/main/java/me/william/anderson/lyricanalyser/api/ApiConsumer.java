@@ -36,7 +36,7 @@ public class ApiConsumer {
         parameters.put("apikey", apiKey);
         parameters.put("artist_id", artistId); // The ID of the artist we want to find
 
-        return sendRequest(url, parameters);
+        return sendRequest(url, parameters).getJSONObject("body").getJSONObject("artist");
     }
 
     public ArrayList<JSONObject> getArtistAlbums(long artistId) throws UnirestException, StatusCodeException {

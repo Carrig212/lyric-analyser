@@ -8,6 +8,7 @@ import me.william.anderson.lyricanalyser.api.ApiConsumer;
 import me.william.anderson.lyricanalyser.exception.StatusCodeException;
 import me.william.anderson.lyricanalyser.model.Album;
 import me.william.anderson.lyricanalyser.model.Artist;
+import me.william.anderson.lyricanalyser.model.Music;
 import me.william.anderson.lyricanalyser.model.Track;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
@@ -36,12 +37,16 @@ public class MusicEntityBuilder {
         artist.setRating(jsonArtist.getInt("artist_rating"));
         artist.setCountry(jsonArtist.getString("artist_country"));
 
-        artist.setGenres(parseGenres(jsonArtist));
+        artist.setGenres(buildGenres(jsonArtist));
+        artist.setAlbums(buildAlbumList(artistId));
+        artist.setWordFrequencies(analyser.parseArtistLyrics(artist));
+
+        buildStatistics(artist);
 
         return artist;
     }
 
-    public ArrayList<Album> buildAlbumList(long artistId) throws StatusCodeException, UnirestException {
+    private ArrayList<Album> buildAlbumList(long artistId) throws StatusCodeException, UnirestException {
         var albums = new ArrayList<Album>();
         var jsonAlbums = consumer.getArtistAlbums(artistId);
 
@@ -52,7 +57,7 @@ public class MusicEntityBuilder {
         return albums;
     }
 
-    private Album buildAlbum(JSONObject jsonAlbum) {
+    private Album buildAlbum(JSONObject jsonAlbum) throws StatusCodeException, UnirestException {
         var album = new Album();
 
         album.setName(jsonAlbum.getString("album_name"));
@@ -62,12 +67,16 @@ public class MusicEntityBuilder {
         album.setReleaseType(jsonAlbum.getString("album_release_type"));
         album.setReleaseDate(jsonAlbum.getString("album_release_date"));
 
-        album.setGenres(parseGenres(jsonAlbum));
+        album.setGenres(buildGenres(jsonAlbum));
+        album.setTracks(buildTrackList(album.getApiId()));
+        album.setWordFrequencies(analyser.parseAlbumLyrics(album));
+
+        buildStatistics(album);
 
         return album;
     }
 
-    public ArrayList<Track> buildTrackList(long albumId) throws StatusCodeException, UnirestException {
+    private ArrayList<Track> buildTrackList(long albumId) throws StatusCodeException, UnirestException {
         var tracks = new ArrayList<Track>();
         var jsonTracks = consumer.getAlbumTracks(albumId);
 
@@ -86,19 +95,29 @@ public class MusicEntityBuilder {
         track.setRating(jsonTrack.getInt("track_rating"));
         track.setDuration(jsonTrack.getInt("track_length"));
 
-        track.setGenres(parseGenres(jsonTrack));
+        track.setGenres(buildGenres(jsonTrack));
         track.setWordFrequencies(buildLyrics(jsonTrack.getLong("track_id")));
 
+        buildStatistics(track);
+
         return track;
+    }
+
+    private void buildStatistics(Music music) {
+        var statistics = analyser.generateStatistics(music); // Returns an array list with three entries
+
+        music.setUniqueWordCount((int) statistics.get(0)); // Unique word count
+        music.setWordCount((int) statistics.get(1)); // Total word count
+        music.setUniqueWordDensity((float) statistics.get(2)); // Unique word density
     }
 
     private Map<String, Integer> buildLyrics(long track_id) throws StatusCodeException, UnirestException {
         var rawLyrics = consumer.getTrackLyrics(track_id);
 
-        return analyser.countUniqueWords(rawLyrics);
+        return analyser.parseTrackLyrics(rawLyrics);
     }
 
-    private ArrayList<String> parseGenres(JSONObject jsonArtist) {
+    private ArrayList<String> buildGenres(JSONObject jsonArtist) {
         var genres = new ArrayList<String>();
 
         var primaryGenreArray = jsonArtist

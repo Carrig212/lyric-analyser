@@ -1,11 +1,9 @@
 package me.william.anderson.lyricanalyser.model;
 
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotNull;
-import java.util.Map;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,9 +18,6 @@ public class Track extends Music {
     @ManyToOne
     @JoinColumn(name = "albumId")
     private Album album;
-
-    @ElementCollection
-    private Map<String, Integer> wordFrequencies;
 
     @NotNull
     private int duration;

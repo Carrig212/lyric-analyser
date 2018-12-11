@@ -9,6 +9,7 @@ import javax.persistence.PreUpdate;
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Map;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor // For JPA purposes
 @MappedSuperclass // We don't want any Music objects in the database
-abstract class Music {
+public abstract class Music {
     @Id
     @GeneratedValue
     private long id;
@@ -30,6 +31,9 @@ abstract class Music {
     private int wordCount;
     private int uniqueWordCount;
     private float uniqueWordDensity;
+
+    @ElementCollection
+    private Map<String, Integer> wordFrequencies;
 
     @NotNull
     @ElementCollection
