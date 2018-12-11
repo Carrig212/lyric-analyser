@@ -1,18 +1,19 @@
 package me.william.anderson.lyricanalyser.model.builder;
 
-import com.mashape.unirest.http.exceptions.UnirestException;
+import java.util.ArrayList;
+import java.util.Map;
+
 import me.william.anderson.lyricanalyser.analyser.LyricAnalyser;
 import me.william.anderson.lyricanalyser.api.ApiConsumer;
 import me.william.anderson.lyricanalyser.exception.StatusCodeException;
 import me.william.anderson.lyricanalyser.model.Album;
 import me.william.anderson.lyricanalyser.model.Artist;
 import me.william.anderson.lyricanalyser.model.Track;
+
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Map;
 
 @Component
 public class MusicEntityBuilder {

@@ -1,18 +1,27 @@
 package me.william.anderson.lyricanalyser.api;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import me.william.anderson.lyricanalyser.exception.StatusCodeException;
+
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import me.william.anderson.lyricanalyser.exception.StatusCodeException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import static me.william.anderson.lyricanalyser.api.ApiConstants.*;
+import static me.william.anderson.lyricanalyser.api.ApiConstants.ALBUM_TRACKS_GET;
+import static me.william.anderson.lyricanalyser.api.ApiConstants.ARTIST_ALBUMS_GET;
+import static me.william.anderson.lyricanalyser.api.ApiConstants.ARTIST_GET;
+import static me.william.anderson.lyricanalyser.api.ApiConstants.PAGE_SIZE;
+import static me.william.anderson.lyricanalyser.api.ApiConstants.RELEASE_TYPE_ALBUM;
+import static me.william.anderson.lyricanalyser.api.ApiConstants.RELEASE_TYPE_EP;
+import static me.william.anderson.lyricanalyser.api.ApiConstants.RELEASE_TYPE_SINGLE;
+import static me.william.anderson.lyricanalyser.api.ApiConstants.TRACK_LYRICS_GET;
+import static me.william.anderson.lyricanalyser.api.ApiConstants.URL;
 
 @Component
 @PropertySource("api.properties")

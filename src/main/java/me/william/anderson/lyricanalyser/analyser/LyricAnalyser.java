@@ -1,10 +1,10 @@
 package me.william.anderson.lyricanalyser.analyser;
 
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Pattern;
+
+import org.springframework.stereotype.Component;
 
 @Component
 public class LyricAnalyser {
