@@ -20,14 +20,16 @@ public class LyricAnalyser {
     private static final String DISCLAIMER = "\n\n******* This Lyrics is NOT for Commercial use *******";
 
     public HashMap<String, Integer> parseTrackLyrics(String rawString) {
-        var uniqueWords = new HashMap<String, Integer>();
+        var wordFrequencies = new HashMap<String, Integer>();
         var words = cleanLyrics(rawString);
 
         for (var word : words) {
-            uniqueWords.put(word, !uniqueWords.containsKey(word) ? 1 : uniqueWords.get(word) + 1); // Remove and count duplicates
+            wordFrequencies.put(word, !wordFrequencies.containsKey(word) ? 1 : wordFrequencies.get(word) + 1); // Remove and count duplicates
         }
 
-        return uniqueWords;
+        wordFrequencies = Sorter.sortHashMapByValueDescending(wordFrequencies);
+
+        return wordFrequencies;
     }
 
     public HashMap<String, Integer> parseAlbumLyrics(Album album) {
@@ -36,6 +38,8 @@ public class LyricAnalyser {
         for (Track track : album.getTracks()) {
             mergeWordFrequencies(track.getWordFrequencies(), wordFrequencies);
         }
+
+        wordFrequencies = Sorter.sortHashMapByValueDescending(wordFrequencies);
 
         return wordFrequencies;
     }
@@ -46,6 +50,8 @@ public class LyricAnalyser {
         for (var album : artist.getAlbums()) {
             mergeWordFrequencies(album.getWordFrequencies(), wordFrequencies);
         }
+
+        wordFrequencies = Sorter.sortHashMapByValueDescending(wordFrequencies);
 
         return wordFrequencies;
     }

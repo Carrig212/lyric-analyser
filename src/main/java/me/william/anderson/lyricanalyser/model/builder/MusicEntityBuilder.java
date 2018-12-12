@@ -38,7 +38,7 @@ public class MusicEntityBuilder {
         artist.setCountry(jsonArtist.getString("artist_country"));
 
         artist.setGenres(buildGenres(jsonArtist));
-        artist.setAlbums(buildAlbumList(artistId));
+        artist.setAlbums(buildAlbumList(artistId, artist));
         artist.setWordFrequencies(analyser.parseArtistLyrics(artist));
 
         buildStatistics(artist);
@@ -46,29 +46,30 @@ public class MusicEntityBuilder {
         return artist;
     }
 
-    private ArrayList<Album> buildAlbumList(long artistId) throws StatusCodeException, UnirestException {
+    private ArrayList<Album> buildAlbumList(long artistId, Artist artist) throws StatusCodeException, UnirestException {
         var albums = new ArrayList<Album>();
         var jsonAlbums = consumer.getArtistAlbums(artistId);
 
         for (JSONObject jsonAlbum : jsonAlbums) {
-            albums.add(buildAlbum(jsonAlbum));
+            albums.add(buildAlbum(jsonAlbum, artist));
         }
 
         return albums;
     }
 
-    private Album buildAlbum(JSONObject jsonAlbum) throws StatusCodeException, UnirestException {
+    private Album buildAlbum(JSONObject jsonAlbum, Artist artist) throws StatusCodeException, UnirestException {
         var album = new Album();
 
         album.setName(jsonAlbum.getString("album_name"));
         album.setApiId(jsonAlbum.getLong("album_id"));
         album.setRating(jsonAlbum.getInt("album_rating"));
+        album.setArtist(artist);
         album.setLabel(jsonAlbum.getString("album_label"));
         album.setReleaseType(jsonAlbum.getString("album_release_type"));
         album.setReleaseDate(jsonAlbum.getString("album_release_date"));
 
         album.setGenres(buildGenres(jsonAlbum));
-        album.setTracks(buildTrackList(album.getApiId()));
+        album.setTracks(buildTrackList(album.getApiId(), album));
         album.setWordFrequencies(analyser.parseAlbumLyrics(album));
 
         buildStatistics(album);
@@ -76,23 +77,24 @@ public class MusicEntityBuilder {
         return album;
     }
 
-    private ArrayList<Track> buildTrackList(long albumId) throws StatusCodeException, UnirestException {
+    private ArrayList<Track> buildTrackList(long albumId, Album album) throws StatusCodeException, UnirestException {
         var tracks = new ArrayList<Track>();
         var jsonTracks = consumer.getAlbumTracks(albumId);
 
         for (JSONObject jsonTrack : jsonTracks) {
-            tracks.add(buildTrack(jsonTrack));
+            tracks.add(buildTrack(jsonTrack, album));
         }
 
         return tracks;
     }
 
-    private Track buildTrack(JSONObject jsonTrack) throws StatusCodeException, UnirestException {
+    private Track buildTrack(JSONObject jsonTrack, Album album) throws StatusCodeException, UnirestException {
         var track = new Track();
 
         track.setName(jsonTrack.getString("track_name"));
         track.setApiId(jsonTrack.getLong("track_id"));
         track.setRating(jsonTrack.getInt("track_rating"));
+        track.setAlbum(album);
         track.setDuration(jsonTrack.getInt("track_length"));
 
         track.setGenres(buildGenres(jsonTrack));
