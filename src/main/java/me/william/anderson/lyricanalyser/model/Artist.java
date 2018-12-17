@@ -1,5 +1,6 @@
 package me.william.anderson.lyricanalyser.model;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
@@ -9,11 +10,15 @@ import java.util.Objects;
 @Entity
 public class Artist extends Music {
     @NotNull
-    @OneToMany(mappedBy = "artist")
+    @OneToMany(mappedBy = "artist", cascade = CascadeType.ALL)
     private Collection<Album> albums;
 
     @NotNull
     private String country;
+
+    public Artist() {
+
+    }
 
     public Collection<Album> getAlbums() {
         return albums;

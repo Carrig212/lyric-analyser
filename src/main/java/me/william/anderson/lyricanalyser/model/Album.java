@@ -1,5 +1,6 @@
 package me.william.anderson.lyricanalyser.model;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -11,7 +12,7 @@ import java.util.Objects;
 @Entity
 public class Album extends Music {
     @NotNull
-    @OneToMany(mappedBy = "album")
+    @OneToMany(mappedBy = "album", cascade = CascadeType.ALL)
     private Collection<Track> tracks;
 
     @NotNull
@@ -27,6 +28,10 @@ public class Album extends Music {
 
     @NotNull
     private String label;
+
+    public Album() {
+
+    }
 
     public Collection<Track> getTracks() {
         return tracks;

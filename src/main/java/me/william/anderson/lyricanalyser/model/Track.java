@@ -16,6 +16,10 @@ public class Track extends Music {
     @NotNull
     private int duration;
 
+    public Track() {
+
+    }
+
     public Album getAlbum() {
         return album;
     }
