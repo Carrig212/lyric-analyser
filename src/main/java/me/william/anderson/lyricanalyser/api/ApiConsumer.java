@@ -115,7 +115,7 @@ public class ApiConsumer {
                 .getInt("status_code"); // The actual status code is in the body
 
         if (statusCode != 200) {
-            throw new StatusCodeException(200, statusCode); // The only status code that's acceptable is 200 OK
+            // FIXME: Throw a status code exception
         }
     }
 
