@@ -122,12 +122,4 @@ public class HtmlScraper {
             throw new MalformedRequestException(url, BASE_URL);
         }
     }
-
-    public static void main(String[] args) {
-        try {
-            System.out.println(scrapeTrackList("https://genius.com/albums/open-mike-eagle/dark-comedy"));
-        } catch (StatusCodeException | MalformedResponseException | MalformedRequestException e) {
-            e.printStackTrace();
-        }
-    }
 }
