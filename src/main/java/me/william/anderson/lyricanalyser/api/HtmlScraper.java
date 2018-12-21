@@ -39,6 +39,19 @@ public class HtmlScraper {
     private static final int STATUS_CODE_200 = 200; // Status code 200 OK
     private static final String BASE_URL = "https://genius.com"; // The base url we want all requests to go to.
 
+    // Link list scraper method
+    public static ArrayList<String> scrapeLinkList(String url, LinkClass linkClass) throws StatusCodeException, MalformedResponseException, MalformedRequestException {
+        // Get the list of links from the body
+        var linkListHtml = getHtmlDocument(url).body().getElementsByClass(linkClass.toString());
+        var linkStringList = new ArrayList<String>();
+
+        for (var link : linkListHtml) {
+            linkStringList.add(link.attr(HREF_ATTR_KEY));
+        }
+
+        return linkStringList;
+    }
+
     // ID scraper methods
     public static String scrapeArtistId(String url) throws StatusCodeException, MalformedResponseException, MalformedRequestException {
         // Retrieve the value of the meta tag with the appropriate name from the head
@@ -66,32 +79,20 @@ public class HtmlScraper {
         );
     }
 
-    // Link list scraper methods
-    @SuppressWarnings("Duplicates")
-    public static ArrayList<String> scrapeAlbumList(String url) throws StatusCodeException, MalformedResponseException, MalformedRequestException {
-        // Get the list of albums from the body
-        var albumListHtml = getHtmlDocument(url).body().getElementsByClass(ALBUM_LINK_CLASS);
-        var albumLinkList = new ArrayList<String>();
+    // Enum for link classes
+    enum LinkClass {
+        TRACK_LINK_CLASS("u-display_block"),
+        ALBUM_LINK_CLASS("album_link");
 
-        // Loop through the list of HTML elements
-        for (var albumLink : albumListHtml) {
-            albumLinkList.add(albumLink.attr(HREF_ATTR_KEY));
+        private final String linkClass;
+
+        LinkClass(String linkClass) {
+            this.linkClass = linkClass;
         }
 
-        return albumLinkList;
-    }
-
-    @SuppressWarnings("Duplicates")
-    public static ArrayList<String> scrapeTrackList(String url) throws StatusCodeException, MalformedResponseException, MalformedRequestException {
-        // Get the list of tracks from the body
-        var trackListHtml = getHtmlDocument(url).body().getElementsByClass(TRACK_LINK_CLASS);
-        var trackLinkList = new ArrayList<String>();
-
-        for (var link : trackListHtml) {
-            trackLinkList.add(link.attr(HREF_ATTR_KEY));
+        public String getLinkClass() {
+            return this.linkClass;
         }
-
-        return trackLinkList;
     }
 
     // Private request helper methods
