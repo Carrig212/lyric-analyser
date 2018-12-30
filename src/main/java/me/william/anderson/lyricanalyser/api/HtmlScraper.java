@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import me.william.anderson.lyricanalyser.exception.MalformedRequestException;
 import me.william.anderson.lyricanalyser.exception.MalformedResponseException;
 import me.william.anderson.lyricanalyser.exception.StatusCodeException;
+import me.william.anderson.lyricanalyser.model.data.TrackData;
 
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
@@ -77,6 +78,27 @@ public class HtmlScraper {
                 contentString.indexOf(ALBUM_ID_START) + ALBUM_ID_START.length(),
                 contentString.indexOf(ALBUM_ID_END)
         );
+    }
+
+    // Data scraper method
+    public static TrackData scrapeTrackIdAndLyrics(String url) throws StatusCodeException, MalformedResponseException, MalformedRequestException {
+        var document = getHtmlDocument(url);
+
+        // Get the ID from the appropriate meta tag in the head
+        var trackId = document
+                .head()
+                .getElementsByAttributeValueContaining(NAME_ATTR_KEY, NAME_ATTR_VALUE)
+                .first()
+                .attr(CONTENT_ATTR_KEY);
+
+        // Get the text from the div with class "lyrics" in the body
+        var trackLyrics = document
+                .body()
+                .getElementsByClass("lyrics")
+                .first()
+                .text();
+
+        return new TrackData(trackId.substring(trackId.lastIndexOf('/') + 1), trackLyrics);
     }
 
     // Enum for link classes
