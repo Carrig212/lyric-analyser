@@ -7,158 +7,83 @@ import javax.persistence.MappedSuperclass;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
-import java.util.Objects;
 
-@MappedSuperclass // We don't want any Music objects in the database
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@MappedSuperclass
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@ToString
 public abstract class Music {
+
+    @NotNull
     @Id
     @GeneratedValue
+    @Getter
     private long id;
 
     @NotNull
+    @Getter
+    @Setter
+    private long apiId;
+
+    @NotNull
+    @Getter
+    @Setter
     private String name;
 
     @NotNull
-    private long apiId;
+    @Getter
+    @Setter
+    private String geniusUrl;
 
-    private int wordCount;
-    private int uniqueWordCount;
-    private float uniqueWordDensity;
+    @NotNull
+    @Getter
+    @Setter
+    private String imageUrl;
 
+    @NotNull
     @ElementCollection
+    @Getter
+    @Setter
     private Map<String, Integer> wordFrequencies;
 
     @NotNull
-    @ElementCollection
-    private Collection<String> genres;
+    @Getter
+    @Setter
+    private int wordCount;
 
     @NotNull
-    private int rating;
+    @Getter
+    @Setter
+    private int uniqueWordCount;
 
     @NotNull
-    private Date updated;
+    @Getter
+    @Setter
+    private float uniqueWordDensity;
 
-    // We want the objects to maintain a timestamp for when they were last updated
+    @NotNull
+    @Getter
+    private Date created;
+
+    @NotNull
+    @Getter
+    private Date lastUpdated;
+
     @PrePersist
+    private void setCreated() {
+        this.created = new Date();
+    }
+
     @PreUpdate
-    private void updateTimestamp() {
-        this.updated = new Date();
-    }
-
-    Music() {
-        // Base constructor for JPA and Music subclasses
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public long getApiId() {
-        return apiId;
-    }
-
-    public void setApiId(long apiId) {
-        this.apiId = apiId;
-    }
-
-    public int getWordCount() {
-        return wordCount;
-    }
-
-    public void setWordCount(int wordCount) {
-        this.wordCount = wordCount;
-    }
-
-    public int getUniqueWordCount() {
-        return uniqueWordCount;
-    }
-
-    public void setUniqueWordCount(int uniqueWordCount) {
-        this.uniqueWordCount = uniqueWordCount;
-    }
-
-    public float getUniqueWordDensity() {
-        return uniqueWordDensity;
-    }
-
-    public void setUniqueWordDensity(float uniqueWordDensity) {
-        this.uniqueWordDensity = uniqueWordDensity;
-    }
-
-    public Map<String, Integer> getWordFrequencies() {
-        return wordFrequencies;
-    }
-
-    public void setWordFrequencies(Map<String, Integer> wordFrequencies) {
-        this.wordFrequencies = wordFrequencies;
-    }
-
-    public Collection<String> getGenres() {
-        return genres;
-    }
-
-    public void setGenres(Collection<String> genres) {
-        this.genres = genres;
-    }
-
-    public int getRating() {
-        return rating;
-    }
-
-    public void setRating(int rating) {
-        this.rating = rating;
-    }
-
-    public Date getUpdated() {
-        return updated;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Music)) return false;
-        Music music = (Music) o;
-        return id == music.id &&
-                apiId == music.apiId &&
-                wordCount == music.wordCount &&
-                uniqueWordCount == music.uniqueWordCount &&
-                Float.compare(music.uniqueWordDensity, uniqueWordDensity) == 0 &&
-                rating == music.rating &&
-                name.equals(music.name) &&
-                wordFrequencies.equals(music.wordFrequencies) &&
-                genres.equals(music.genres) &&
-                updated.equals(music.updated);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, apiId, wordCount, uniqueWordCount, uniqueWordDensity, wordFrequencies, genres, rating, updated);
-    }
-
-    @Override
-    public String toString() {
-        return "Music{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", apiId=" + apiId +
-                ", wordCount=" + wordCount +
-                ", uniqueWordCount=" + uniqueWordCount +
-                ", uniqueWordDensity=" + uniqueWordDensity +
-                ", wordFrequencies=" + wordFrequencies +
-                ", genres=" + genres +
-                ", rating=" + rating +
-                ", updated=" + updated +
-                '}';
+    private void setLastUpdated() {
+        this.lastUpdated = new Date();
     }
 }

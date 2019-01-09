@@ -1,148 +1,94 @@
 package me.william.anderson.lyricanalyser.api;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
 import me.william.anderson.lyricanalyser.exception.StatusCodeException;
 
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import lombok.NonNull;
+import lombok.val;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
-import static me.william.anderson.lyricanalyser.api.ApiConstants.ALBUM_TRACKS_GET;
-import static me.william.anderson.lyricanalyser.api.ApiConstants.ARTIST_ALBUMS_GET;
-import static me.william.anderson.lyricanalyser.api.ApiConstants.ARTIST_GET;
-import static me.william.anderson.lyricanalyser.api.ApiConstants.PAGE_SIZE;
-import static me.william.anderson.lyricanalyser.api.ApiConstants.RELEASE_TYPE_ALBUM;
-import static me.william.anderson.lyricanalyser.api.ApiConstants.RELEASE_TYPE_EP;
-import static me.william.anderson.lyricanalyser.api.ApiConstants.RELEASE_TYPE_SINGLE;
-import static me.william.anderson.lyricanalyser.api.ApiConstants.TRACK_LYRICS_GET;
-import static me.william.anderson.lyricanalyser.api.ApiConstants.URL;
-
 @Component
 @PropertySource("api.properties")
 public class ApiConsumer {
-    @Value("${api.key}")
-    private String apiKey;
 
-    public JSONObject getArtist(long artistId) throws UnirestException, StatusCodeException {
-        var url = URL + ARTIST_GET;
-        var parameters = new HashMap<String, Object>();
+    private static final Logger logger = LoggerFactory.getLogger(ApiConsumer.class);
 
-        parameters.put("apikey", apiKey);
-        parameters.put("artist_id", artistId); // The ID of the artist we want to find
+    // Constants
+    private static final int STATUS = 200;
+    private static final String URL = "https://api.genius.com/";
+    private static final String RESPONSE = "response";
 
-        return sendRequest(url, parameters).getJSONObject("body").getJSONObject("artist");
-    }
+    private static final String ARTISTS = "artists/";
+    private static final String ARTIST = "artist";
 
-    public ArrayList<JSONObject> getArtistAlbums(long artistId) throws UnirestException, StatusCodeException {
-        var url = URL + ARTIST_ALBUMS_GET;
-        var parameters = new HashMap<String, Object>();
-        int pageNumber = 1; // The results will be paginated, starting at 1
+    private static final String ALBUMS = "albums/";
+    private static final String ALBUM = "album";
 
-        parameters.put("apikey", apiKey);
-        parameters.put("artist_id", artistId); // The ID of the artist we want to find
-        parameters.put("g_album_name", 1); // Group by album name to remove duplicates
-        parameters.put("page_size", PAGE_SIZE); // Maximum results per page is 100
-        parameters.put("page", pageNumber);
+    private static final String SONGS = "songs/";
+    private static final String SONG = "song";
 
-        var albums = new ArrayList<JSONObject>();
-        var response = new JSONObject(); // This needs to be created here so we can access it in the loop parameters
+    private static final String ACCEPT = "Accept";
+    private static final String JSON = "application/json";
+    private static final String AUTH = "Authorization";
+    private static final String BEARER = "Bearer ";
+    private static final String FORMAT = "text_format";
+    private static final String PLAIN = "plain";
 
-        do {
-            response = sendRequest(url, parameters);
+    @NonNull
+    @Value("${client.access.token}")
+    private String accessToken;
 
-            if (response.getJSONObject("body").getJSONArray("album_list").length() != 0) {
-                albums.addAll(extractAlbumsFromJson(response));
-            }
+    public JSONObject getArtist(long id) throws StatusCodeException, UnirestException {
+        val url = URL + ARTISTS + id;
 
-            pageNumber++; // Increment the page number
-            parameters.replace("page", pageNumber); // Update the page number
-        } while (response.getJSONObject("body")
-                .getJSONArray("album_list")
-                .length() == PAGE_SIZE); // Loop until we run out of results
-
-        return albums;
-    }
-
-    public ArrayList<JSONObject> getAlbumTracks(long albumId) throws UnirestException, StatusCodeException {
-        var url = URL + ALBUM_TRACKS_GET;
-        var parameters = new HashMap<String, Object>();
-
-        parameters.put("apikey", apiKey);
-        parameters.put("album_id", albumId); // The ID of the album we want to find
-        parameters.put("f_has_lyrics", 1);
-
-        var response = sendRequest(url, parameters);
-
-        return extractTracksFromJSON(response);
-    }
-
-    public String getTrackLyrics(long trackId) throws UnirestException, StatusCodeException {
-        var url = URL + TRACK_LYRICS_GET;
-        var parameters = new HashMap<String, Object>();
-
-        parameters.put("apikey", apiKey);
-        parameters.put("track_id", trackId);
-
-        var response = sendRequest(url, parameters);
-
-        return response.getJSONObject("body").getJSONObject("lyrics").getString("lyrics_body");
-    }
-
-    // Internal utility methods
-    private JSONObject sendRequest(String url, Map<String, Object> parameters) throws UnirestException, StatusCodeException {
-        var response = Unirest.get(url)
-                .header("accept", "application/json")
-                .queryString(parameters) // Add the parameters to the url
-                .asJson()
+        return sendRequest(url)
                 .getBody()
                 .getObject()
-                .getJSONObject("message"); // Get the message object from the response
+                .getJSONObject(RESPONSE)
+                .getJSONObject(ARTIST);
+    }
 
-        checkStatusCode(response);
+    public JSONObject getAlbum(long id) throws StatusCodeException, UnirestException {
+        val url = URL + ALBUMS + id;
+
+        return sendRequest(url)
+                .getBody()
+                .getObject()
+                .getJSONObject(RESPONSE)
+                .getJSONObject(ALBUM);
+    }
+
+    public JSONObject getTrack(long id) throws StatusCodeException, UnirestException {
+        val url = URL + SONGS + id;
+
+        return sendRequest(url)
+                .getBody()
+                .getObject()
+                .getJSONObject(RESPONSE)
+                .getJSONObject(SONG);
+    }
+
+    private HttpResponse<JsonNode> sendRequest(String url) throws StatusCodeException, UnirestException {
+        val response = Unirest.get(url) // Send the request
+                .header(ACCEPT, JSON)
+                .header(AUTH, BEARER + accessToken) // OAuth 2.0
+                .queryString(FORMAT, PLAIN)
+                .asJson();
+
+        // Since we're only querying the api, 200 OK is the only acceptable status code
+        if (response.getStatus() != STATUS) {
+            logger.error(url + " responded with status code " + response.getStatus());
+            throw new StatusCodeException(response.getStatus(), STATUS);
+        }
 
         return response;
-    }
-
-    private void checkStatusCode(JSONObject body) throws StatusCodeException {
-        int statusCode = body
-                .getJSONObject("header")
-                .getInt("status_code"); // The actual status code is in the body
-
-        if (statusCode != 200) {
-            // FIXME: Throw a status code exception
-        }
-    }
-
-    private ArrayList<JSONObject> extractAlbumsFromJson(JSONObject response) {
-        var albums = new ArrayList<JSONObject>();
-        var results = response.getJSONObject("body").getJSONArray("album_list"); // Get the list of results
-
-        for (int i = 0; i < results.length(); i++) { // Loop through the list
-            var album = results.getJSONObject(i).getJSONObject("album"); // Extract the album object
-            var type = album.getString("album_release_type");
-
-            if (type.equals(RELEASE_TYPE_ALBUM) || type.equals(RELEASE_TYPE_SINGLE) || type.equals(RELEASE_TYPE_EP)) {
-                albums.add(album); // Filter out compilations and remixes
-            }
-        }
-
-        return albums;
-    }
-
-    private ArrayList<JSONObject> extractTracksFromJSON(JSONObject response) {
-        var tracks = new ArrayList<JSONObject>();
-        var results = response.getJSONObject("body").getJSONArray("track_list"); // Get the list of results
-
-        for (int i = 0; i < results.length(); i++) { // Loop through the list
-            tracks.add(results.getJSONObject(i).getJSONObject("track")); // Extract the track object
-        }
-
-        return tracks;
     }
 }

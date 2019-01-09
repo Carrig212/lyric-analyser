@@ -10,18 +10,18 @@ import me.william.anderson.lyricanalyser.model.Album;
 import me.william.anderson.lyricanalyser.model.Artist;
 import me.william.anderson.lyricanalyser.model.Music;
 import me.william.anderson.lyricanalyser.model.Track;
+import me.william.anderson.lyricanalyser.model.data.Statistics;
 
-import org.springframework.stereotype.Component;
+import lombok.val;
 
-@Component
 public class LyricAnalyser {
 
-    private static final Pattern REGEX = Pattern.compile("[a-z']+");
-    private static final String DISCLAIMER = "\n\n******* This Lyrics is NOT for Commercial use *******";
+    private static final Pattern BRACKET_REGEX = Pattern.compile("\\[[^\\[]*]");
+    private static final Pattern WORD_REGEX = Pattern.compile("[a-z']+");
 
-    public HashMap<String, Integer> parseTrackLyrics(String rawString) {
+    public static HashMap<String, Integer> parseTrackLyrics(String rawString) {
         var wordFrequencies = new HashMap<String, Integer>();
-        var words = cleanLyrics(rawString);
+        val words = cleanLyrics(rawString);
 
         for (var word : words) {
             wordFrequencies.put(word, !wordFrequencies.containsKey(word) ? 1 : wordFrequencies.get(word) + 1); // Remove and count duplicates
@@ -32,7 +32,7 @@ public class LyricAnalyser {
         return wordFrequencies;
     }
 
-    public HashMap<String, Integer> parseAlbumLyrics(Album album) {
+    public static HashMap<String, Integer> parseAlbumLyrics(Album album) {
         var wordFrequencies = new HashMap<String, Integer>();
 
         for (Track track : album.getTracks()) {
@@ -44,7 +44,7 @@ public class LyricAnalyser {
         return wordFrequencies;
     }
 
-    public HashMap<String, Integer> parseArtistLyrics(Artist artist) {
+    public static HashMap<String, Integer> parseArtistLyrics(Artist artist) {
         var wordFrequencies = new HashMap<String, Integer>();
 
         for (var album : artist.getAlbums()) {
@@ -56,24 +56,20 @@ public class LyricAnalyser {
         return wordFrequencies;
     }
 
-    public ArrayList<Object> generateStatistics(Music music) {
-        var uniqueWordCount = music.getWordFrequencies().size();
+    public static Statistics generateStatistics(Music music) {
+        val uniqueWordCount = music.getWordFrequencies().size();
         var wordCount = 0;
 
         for (Entry<String, Integer> entry : music.getWordFrequencies().entrySet()) { // Iterate over the word frequencies
             wordCount += entry.getValue();
         }
 
-        var statistics = new ArrayList<>();
+        val uniqueWordDensity = wordCount == 0 ? 0.0F : (((float) uniqueWordCount / (float) wordCount) * 100.0F);
 
-        statistics.add(uniqueWordCount);
-        statistics.add(wordCount);
-        statistics.add((wordCount == 0 ? 0.0F : (((float) uniqueWordCount / (float) wordCount) * 100.0F)));
-
-        return statistics;
+        return new Statistics(wordCount, uniqueWordCount, uniqueWordDensity);
     }
 
-    private void mergeWordFrequencies(Map<String, Integer> wordFrequencies, Map<String, Integer> totalWordFrequencies) {
+    private static void mergeWordFrequencies(Map<String, Integer> wordFrequencies, Map<String, Integer> totalWordFrequencies) {
         for (Entry<String, Integer> entry : wordFrequencies.entrySet()) { // Iterate over the word frequencies
             if (totalWordFrequencies.containsKey(entry.getKey())) { // Remove and count duplicates
                 totalWordFrequencies.put(entry.getKey(), (totalWordFrequencies.get(entry.getKey()) + entry.getValue()));
@@ -83,18 +79,16 @@ public class LyricAnalyser {
         }
     }
 
-    private ArrayList<String> cleanLyrics(String rawString) {
-        var words = new ArrayList<String>();
+    private static ArrayList<String> cleanLyrics(String rawString) {
+        val words = new ArrayList<String>();
 
-        if (!rawString.equals("")) {
-            rawString = rawString.substring(0, rawString.indexOf(DISCLAIMER)); // Remove the disclaimer from the lyrics
-            rawString = rawString.toLowerCase();
-        }
+        rawString = BRACKET_REGEX.matcher(rawString).replaceAll("");
+        rawString = rawString.toLowerCase();
 
-        var matcher = REGEX.matcher(rawString);
+        val wordMatcher = WORD_REGEX.matcher(rawString);
 
-        while (matcher.find()) {
-            words.add(matcher.group()); // Get all of the individual words from the lyrics
+        while (wordMatcher.find()) {
+            words.add(wordMatcher.group()); // Get all of the individual words from the lyrics
         }
 
         return words;

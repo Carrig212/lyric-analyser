@@ -1,10 +1,12 @@
 package me.william.anderson.lyricanalyser.model.builder;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 import me.william.anderson.lyricanalyser.analyser.LyricAnalyser;
 import me.william.anderson.lyricanalyser.api.ApiConsumer;
+import me.william.anderson.lyricanalyser.api.HtmlScraper;
+import me.william.anderson.lyricanalyser.exception.MalformedRequestException;
+import me.william.anderson.lyricanalyser.exception.MalformedResponseException;
 import me.william.anderson.lyricanalyser.exception.StatusCodeException;
 import me.william.anderson.lyricanalyser.model.Album;
 import me.william.anderson.lyricanalyser.model.Artist;
@@ -12,138 +14,128 @@ import me.william.anderson.lyricanalyser.model.Music;
 import me.william.anderson.lyricanalyser.model.Track;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
+import lombok.NonNull;
+import lombok.val;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@SuppressWarnings("Duplicates")
 public class MusicEntityBuilder {
 
+    // Constants
+    private static final String ID = "id";
+    private static final String NAME = "name";
+    private static final String URL = "url";
+
+    private static final String IMAGE_URL = "image_url";
+
+    private static final String COVER_URL = "cover_art_url";
+    private static final String RELEASE_DATE = "release_date";
+
+    private static final String TITLE = "title";
+    private static final String SONG_ART_URL = "song_art_image_url";
+    private static final String FEATURED = "featured_artists";
+    private static final String LYRICS_STATE = "lyrics_state";
+
+    @NonNull
     private final ApiConsumer consumer;
-    private final LyricAnalyser analyser;
 
     @Autowired
-    public MusicEntityBuilder(ApiConsumer consumer, LyricAnalyser analyser) {
+    public MusicEntityBuilder(ApiConsumer consumer) {
         this.consumer = consumer;
-        this.analyser = analyser;
     }
 
-    public Artist buildArtist(long artistId) throws StatusCodeException, UnirestException {
-        var artist = new Artist();
-        var jsonArtist = consumer.getArtist(artistId);
+    public Artist buildArtist(String url) throws StatusCodeException, MalformedResponseException, MalformedRequestException, UnirestException {
+        val json = consumer.getArtist(HtmlScraper.scrapeArtistId(url));
+        val artist = new Artist();
 
-        artist.setName(jsonArtist.getString("artist_name"));
-        artist.setApiId(jsonArtist.getLong("artist_id"));
-        artist.setRating(jsonArtist.getInt("artist_rating"));
-        artist.setCountry(jsonArtist.getString("artist_country"));
+        artist.setApiId(json.getLong(ID));
+        artist.setName(json.getString(NAME));
+        artist.setGeniusUrl(json.getString(URL));
+        artist.setImageUrl(json.getString(IMAGE_URL));
 
-        artist.setGenres(buildGenres(jsonArtist));
-        artist.setAlbums(buildAlbumList(artistId, artist));
-        artist.setWordFrequencies(analyser.parseArtistLyrics(artist));
+        artist.setAlbums(buildAlbumList(artist));
 
+        artist.setWordFrequencies(LyricAnalyser.parseArtistLyrics(artist));
         buildStatistics(artist);
 
         return artist;
     }
 
-    private ArrayList<Album> buildAlbumList(long artistId, Artist artist) throws StatusCodeException, UnirestException {
-        var albums = new ArrayList<Album>();
-        var jsonAlbums = consumer.getArtistAlbums(artistId);
+    private ArrayList<Album> buildAlbumList(Artist artist) throws StatusCodeException, UnirestException, MalformedRequestException, MalformedResponseException {
+        val albums = new ArrayList<Album>();
 
-        for (JSONObject jsonAlbum : jsonAlbums) {
-            albums.add(buildAlbum(jsonAlbum, artist));
+        for (var id : HtmlScraper.scrapeAlbumIdList(artist.getApiId())) {
+            albums.add(buildAlbum(consumer.getAlbum(id), artist));
         }
 
         return albums;
     }
 
-    private Album buildAlbum(JSONObject jsonAlbum, Artist artist) throws StatusCodeException, UnirestException {
-        var album = new Album();
+    private Album buildAlbum(JSONObject json, Artist artist) throws StatusCodeException, UnirestException, MalformedResponseException, MalformedRequestException {
+        val album = new Album();
 
-        album.setName(jsonAlbum.getString("album_name"));
-        album.setApiId(jsonAlbum.getLong("album_id"));
-        album.setRating(jsonAlbum.getInt("album_rating"));
+        album.setApiId(json.getLong(ID));
+        album.setName(json.getString(NAME));
+        album.setGeniusUrl(json.getString(URL));
+        album.setImageUrl(json.getString(COVER_URL));
+
+        album.setReleaseDate(json.getString(RELEASE_DATE));
+
         album.setArtist(artist);
-        album.setLabel(jsonAlbum.getString("album_label"));
-        album.setReleaseType(jsonAlbum.getString("album_release_type"));
-        album.setReleaseDate(jsonAlbum.getString("album_release_date"));
+        album.setTracks(buildTrackList(album));
 
-        album.setGenres(buildGenres(jsonAlbum));
-        album.setTracks(buildTrackList(album.getApiId(), album));
-        album.setWordFrequencies(analyser.parseAlbumLyrics(album));
-
+        album.setWordFrequencies(LyricAnalyser.parseAlbumLyrics(album));
         buildStatistics(album);
 
         return album;
     }
 
-    private ArrayList<Track> buildTrackList(long albumId, Album album) throws StatusCodeException, UnirestException {
-        var tracks = new ArrayList<Track>();
-        var jsonTracks = consumer.getAlbumTracks(albumId);
+    private ArrayList<Track> buildTrackList(Album album) throws StatusCodeException, UnirestException, MalformedRequestException, MalformedResponseException {
+        val tracks = new ArrayList<Track>();
 
-        for (JSONObject jsonTrack : jsonTracks) {
-            tracks.add(buildTrack(jsonTrack, album));
+        for (var trackData : HtmlScraper.scrapeTrackList(album.getGeniusUrl())) {
+            val json = consumer.getTrack(trackData.getId());
+            tracks.add(buildTrack(json, album, trackData.getLyrics()));
         }
 
         return tracks;
     }
 
-    private Track buildTrack(JSONObject jsonTrack, Album album) throws StatusCodeException, UnirestException {
-        var track = new Track();
+    private Track buildTrack(JSONObject json, Album album, String lyrics) {
+        val track = new Track();
 
-        track.setName(jsonTrack.getString("track_name"));
-        track.setApiId(jsonTrack.getLong("track_id"));
-        track.setRating(jsonTrack.getInt("track_rating"));
+        track.setApiId(json.getLong(ID));
+        track.setName(json.getString(TITLE));
+        track.setGeniusUrl(json.getString(URL));
+        track.setImageUrl(json.getString(SONG_ART_URL));
+
+        val featuresJson = json.getJSONArray(FEATURED);
+        val features = new ArrayList<String>();
+
+        for (int i = 0; i < featuresJson.length(); i++) {
+            features.add(featuresJson.getJSONObject(i).getString(NAME));
+        }
+
+        track.setFeaturedArtists(features);
+        track.setLyricsState(json.getString(LYRICS_STATE));
+        track.setLyrics(lyrics);
+
         track.setAlbum(album);
-        track.setDuration(jsonTrack.getInt("track_length"));
 
-        track.setGenres(buildGenres(jsonTrack));
-        track.setWordFrequencies(buildLyrics(jsonTrack.getLong("track_id")));
-
+        track.setWordFrequencies(LyricAnalyser.parseTrackLyrics(track.getLyrics()));
         buildStatistics(track);
 
         return track;
     }
 
     private void buildStatistics(Music music) {
-        var statistics = analyser.generateStatistics(music); // Returns an array list with three entries
+        val statistics = LyricAnalyser.generateStatistics(music);
 
-        music.setUniqueWordCount((int) statistics.get(0)); // Unique word count
-        music.setWordCount((int) statistics.get(1)); // Total word count
-        music.setUniqueWordDensity((float) statistics.get(2)); // Unique word density
-    }
-
-    private Map<String, Integer> buildLyrics(long track_id) throws StatusCodeException, UnirestException {
-        var rawLyrics = consumer.getTrackLyrics(track_id);
-
-        return analyser.parseTrackLyrics(rawLyrics);
-    }
-
-    private ArrayList<String> buildGenres(JSONObject jsonArtist) {
-        var genres = new ArrayList<String>();
-
-        var primaryGenreArray = jsonArtist
-                .getJSONObject("primary_genres")
-                .getJSONArray("music_genre_list");
-
-        var secondaryGenreArray = jsonArtist
-                .getJSONObject("secondary_genres")
-                .getJSONArray("music_genre_list");
-
-        for (int i = 0; i < primaryGenreArray.length(); i++) {
-            genres.add(primaryGenreArray
-                    .getJSONObject(i)
-                    .getJSONObject("music_genre")
-                    .getString("music_genre_name"));
-        }
-
-        for (int i = 0; i < secondaryGenreArray.length(); i++) {
-            genres.add(secondaryGenreArray
-                    .getJSONObject(i)
-                    .getJSONObject("music_genre")
-                    .getString("music_genre_name"));
-        }
-
-        return genres;
+        music.setUniqueWordCount(statistics.getUniqueWordCount());
+        music.setWordCount(statistics.getWordCount());
+        music.setUniqueWordDensity(statistics.getUniqueWordDensity());
     }
 }

@@ -8,6 +8,7 @@ import me.william.anderson.lyricanalyser.exception.MalformedResponseException;
 import me.william.anderson.lyricanalyser.exception.StatusCodeException;
 import me.william.anderson.lyricanalyser.model.data.TrackData;
 
+import lombok.val;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -18,112 +19,131 @@ public class HtmlScraper {
 
     private static final Logger logger = LoggerFactory.getLogger(HtmlScraper.class);
 
-    // Constants for scraping artist IDs
-    private static final String NAME_ATTR_KEY = "name"; // The name attribute key in the meta tags
-    private static final String NAME_ATTR_VALUE = "newrelic-resource-path"; // The name value we want to find
-    private static final String CONTENT_ATTR_KEY = "content"; // The content attribute key
-    private static final String ITEMPROP_ATTR_KEY = "itemprop"; // The itemprop attribute key in the meta tags
+    // Constants
+    private static final int STATUS = 200;
+    private static final String URL = "https://genius.com";
 
-    // Constants for scraping the album IDs
-    private static final String ITEMPROP_ATTR_VALUE = "page_data"; // The itemprop value we want to find
-    private static final String ALBUM_ID_START = "album_ids\":\"["; // The start of the album_ids element
-    private static final String ALBUM_ID_END = "]"; // The end of the album_ids element
+    private static final String ARTIST_ID_KEY = "name";
+    private static final String ARTIST_ID_VALUE = "newrelic-resource-path";
+    private static final String ARTIST_ID_START = "/";
+    private static final String ARTIST_ALBUMS = "/artists/albums?for_artist_page=";
 
-    // Constants for scraping album lists
-    private static final String HREF_ATTR_KEY = "href"; // The href attribute key in the anchor tags
-    private static final String ALBUM_LINK_CLASS = "album_link"; // The class of the album links
+    private static final String ALBUM_LINK_CLASS = "album_link";
+    private static final String ALBUM_LINK_ATTRIBUTE = "href";
+    private static final String ALBUM_ID_KEY = "itemprop";
+    private static final String ALBUM_ID_VALUE = "page_data";
+    private static final String ALBUM_ID_ATTRIBUTE = "content";
+    private static final String ALBUM_ID_START = "album_ids\":\"[";
+    private static final String ALBUM_ID_END = "]";
 
-    // Constants for scraping track lists
-    private static final String TRACK_LINK_CLASS = "u-display_block"; // The class of the track links
+    private static final String TRACK_LINK_CLASS = "u-display_block";
+    private static final String TRACK_LYRICS_CLASS = "lyrics";
+    private static final String TRACK_ID_ATTRIBUTE = "content";
+    private static final String TRACK_ID_START = "/";
 
-    // Constants for connection validation
-    private static final int STATUS_CODE_200 = 200; // Status code 200 OK
-    private static final String BASE_URL = "https://genius.com"; // The base url we want all requests to go to.
+    public static long scrapeArtistId(String url) throws StatusCodeException, MalformedResponseException, MalformedRequestException {
+        // Get the meta tag with the artist ID from the head
+        val contentString = getHtmlDocument(url)
+                .head()
+                .getElementsByAttributeValueContaining(ARTIST_ID_KEY, ARTIST_ID_VALUE)
+                .first()
+                .attr(ALBUM_ID_ATTRIBUTE);
 
-    // Link list scraper method
-    public static ArrayList<String> scrapeLinkList(String url, LinkClass linkClass) throws StatusCodeException, MalformedResponseException, MalformedRequestException {
-        // Get the list of links from the body
-        var linkListHtml = getHtmlDocument(url).body().getElementsByClass(linkClass.toString());
-        var linkStringList = new ArrayList<String>();
+        // Remove everything but the ID from the string
+        val artistIdString = contentString.substring(contentString.lastIndexOf(ARTIST_ID_START) + 1);
 
-        for (var link : linkListHtml) {
-            linkStringList.add(link.attr(HREF_ATTR_KEY));
+        logger.info("Successfully scraped artist ID " + artistIdString + " from " + url);
+
+        return Long.parseLong(artistIdString);
+    }
+
+    public static ArrayList<Long> scrapeAlbumIdList(long id) throws StatusCodeException, MalformedResponseException, MalformedRequestException {
+        val url = URL + ARTIST_ALBUMS + id;
+
+        // Get a list of all album links from the body
+        val albumLinkList = getHtmlDocument(url).body().getElementsByClass(ALBUM_LINK_CLASS);
+        val albumIdList = new ArrayList<Long>();
+
+        logger.info("Successfully scraped album link list from " + url);
+
+        for (var link : albumLinkList) {
+            // Get the ID from each link and add it to the list
+            albumIdList.add(scrapeAlbumId(URL + link.attr(ALBUM_LINK_ATTRIBUTE)));
         }
 
-        return linkStringList;
+        logger.info("Successfully scraped all album IDs for artist " + id);
+
+        return albumIdList;
     }
 
-    // ID scraper methods
-    public static String scrapeArtistId(String url) throws StatusCodeException, MalformedResponseException, MalformedRequestException {
-        // Retrieve the value of the meta tag with the appropriate name from the head
-        var metaTagContent = getHtmlDocument(url)
+    private static long scrapeAlbumId(String url) throws StatusCodeException, MalformedResponseException, MalformedRequestException {
+        // Get the meta tag with the album ID from the head
+        val contentString = getHtmlDocument(url)
                 .head()
-                .getElementsByAttributeValueContaining(NAME_ATTR_KEY, NAME_ATTR_VALUE)
-                .first()
-                .attr(CONTENT_ATTR_KEY);
+                .getElementsByAttributeValueContaining(ALBUM_ID_KEY, ALBUM_ID_VALUE)
+                .attr(ALBUM_ID_ATTRIBUTE);
 
-        // Return the value of the content attribute, sans the "/artists/"
-        return metaTagContent.substring(metaTagContent.lastIndexOf('/') + 1);
-    }
-
-    public static String scrapeAlbumId(String url) throws StatusCodeException, MalformedResponseException, MalformedRequestException {
-        // Extract the content string from the meta tag with the appropriate name from the head
-        var contentString = getHtmlDocument(url)
-                .head()
-                .getElementsByAttributeValueContaining(ITEMPROP_ATTR_KEY, ITEMPROP_ATTR_VALUE)
-                .attr(CONTENT_ATTR_KEY);
-
-        // Extract and return the album ID from the content string
-        return contentString.substring(
+        // Extract the album ID from the string
+        val albumIdString = contentString.substring(
                 contentString.indexOf(ALBUM_ID_START) + ALBUM_ID_START.length(),
                 contentString.indexOf(ALBUM_ID_END)
         );
+
+        return Long.parseLong(albumIdString);
     }
 
-    // Data scraper method
-    public static TrackData scrapeTrackIdAndLyrics(String url) throws StatusCodeException, MalformedResponseException, MalformedRequestException {
-        var document = getHtmlDocument(url);
-
-        // Get the ID from the appropriate meta tag in the head
-        var trackId = document
-                .head()
-                .getElementsByAttributeValueContaining(NAME_ATTR_KEY, NAME_ATTR_VALUE)
-                .first()
-                .attr(CONTENT_ATTR_KEY);
-
-        // Get the text from the div with class "lyrics" in the body
-        var trackLyrics = document
+    public static ArrayList<TrackData> scrapeTrackList(String url) throws StatusCodeException, MalformedResponseException, MalformedRequestException {
+        // Get the list of track links from the body
+        val trackLinkList = getHtmlDocument(url)
                 .body()
-                .getElementsByClass("lyrics")
+                .getElementsByClass(TRACK_LINK_CLASS);
+
+        logger.info("Successfully scraped track link list from " + url);
+
+        val trackDataList = new ArrayList<TrackData>();
+
+        for (var link : trackLinkList) {
+            // Get the ID and lyrics from each page and add them to the list
+            trackDataList.add(scrapeTrackIdAndLyrics(link.attr(ALBUM_LINK_ATTRIBUTE)));
+        }
+
+        logger.info("Successfully scraped all track IDs and lyrics");
+
+        return trackDataList;
+    }
+
+    private static TrackData scrapeTrackIdAndLyrics(String url) throws StatusCodeException, MalformedResponseException, MalformedRequestException {
+        val document = getHtmlDocument(url);
+
+        // Get the track ID from the meta tag in the head
+        val trackIdString = document
+                .head()
+                .getElementsByAttributeValueContaining(ARTIST_ID_KEY, ARTIST_ID_VALUE)
+                .first()
+                .attr(TRACK_ID_ATTRIBUTE);
+
+        // Get the lyrics from the body
+        val trackLyrics = document
+                .body()
+                .getElementsByClass(TRACK_LYRICS_CLASS)
                 .first()
                 .text();
 
-        return new TrackData(trackId.substring(trackId.lastIndexOf('/') + 1), trackLyrics);
+        // Extract the track ID from the string
+        val trackId = Long.parseLong(trackIdString.substring(trackIdString.lastIndexOf(TRACK_ID_START) + 1));
+
+        // Return the ID and lyrics in a data object
+        return new TrackData(trackId, trackLyrics);
     }
 
-    // Enum for link classes
-    enum LinkClass {
-        TRACK_LINK_CLASS("u-display_block"),
-        ALBUM_LINK_CLASS("album_link");
-
-        private final String linkClass;
-
-        LinkClass(String linkClass) {
-            this.linkClass = linkClass;
-        }
-
-        public String getLinkClass() {
-            return this.linkClass;
-        }
-    }
-
-    // Private request helper methods
+    // Request helper methods
     private static Document getHtmlDocument(String url) throws MalformedResponseException, StatusCodeException, MalformedRequestException {
         checkConnection(url);
 
         try {
-            return Jsoup.connect(url).get(); // Return the HTML from the site
-        } catch (IOException e) { // An IOException is thrown if the response is not valid HTML
+            // Execute the request and return the HTML document
+            return Jsoup.connect(url).get();
+        } catch (IOException e) {
             throw new MalformedResponseException(url, e);
         }
     }
@@ -132,17 +152,20 @@ public class HtmlScraper {
         validateUrl(url);
 
         try {
-            Jsoup.connect(url).execute(); // Test the connection, without retrieving the HTML document
-        } catch (HttpStatusException e) { // A HttpStatusException is thrown if we receive a 404 Not Found status code
-            throw new StatusCodeException(STATUS_CODE_200, e);
-        } catch (IOException e) { // An IOException is thrown if the response is not valid HTTP
+            // Test to see if we can actually connect to the server
+            Jsoup.connect(url).execute();
+        } catch (HttpStatusException e) {
+            // The only acceptable status code is 200 OK
+            throw new StatusCodeException(STATUS, e);
+        } catch (IOException e) {
             throw new MalformedResponseException(url, e);
         }
     }
 
     private static void validateUrl(String url) throws MalformedRequestException {
-        if (!url.substring(0, BASE_URL.length()).equals(BASE_URL)) { // Make sure the url starts with the correct string
-            throw new MalformedRequestException(url, BASE_URL);
+        // Check that the URL is formatted correctly
+        if (!url.substring(0, URL.length()).equals(URL)) {
+            throw new MalformedRequestException(url, URL);
         }
     }
 }
