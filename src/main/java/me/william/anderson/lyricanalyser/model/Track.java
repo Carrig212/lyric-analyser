@@ -41,6 +41,8 @@ public class Track extends Music {
     private String lyricsState;
 
     @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @Getter
     @Setter
     private String lyrics;
