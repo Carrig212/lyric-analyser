@@ -10,8 +10,9 @@ import static java.util.Map.Entry.comparingByKey;
 import static java.util.Map.Entry.comparingByValue;
 import static java.util.stream.Collectors.toMap;
 
-public class Sorter {
-    public static HashMap<String, Integer> sortHashMapByValueAscending(Map<String, Integer> map) {
+@SuppressWarnings("unused")
+class Sorter {
+    static HashMap<String, Integer> sortHashMapByValueAscending(Map<String, Integer> map) {
         return map
                 .entrySet()
                 .stream()
@@ -21,7 +22,7 @@ public class Sorter {
                         LinkedHashMap::new));
     }
 
-    public static HashMap<String, Integer> sortHashMapByValueDescending(Map<String, Integer> map) {
+    static HashMap<String, Integer> sortHashMapByValueDescending(Map<String, Integer> map) {
         return map
                 .entrySet()
                 .stream()
@@ -31,7 +32,7 @@ public class Sorter {
                         LinkedHashMap::new));
     }
 
-    public static HashMap<String, Integer> sortHashMapByKeyAscending(Map<String, Integer> map) {
+    static HashMap<String, Integer> sortHashMapByKeyAscending(Map<String, Integer> map) {
         return map
                 .entrySet()
                 .stream()
@@ -41,7 +42,7 @@ public class Sorter {
                         LinkedHashMap::new));
     }
     
-    public static HashMap<String, Integer> sortHashMapByKeyDescending(Map<String, Integer> map) {
+    static HashMap<String, Integer> sortHashMapByKeyDescending(Map<String, Integer> map) {
         return map
                 .entrySet()
                 .stream()

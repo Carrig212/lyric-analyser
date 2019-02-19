@@ -1,8 +1,6 @@
 package me.william.anderson.lyricanalyser.analyser;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
@@ -18,6 +16,7 @@ public class LyricAnalyser {
 
     private static final Pattern BRACKET_REGEX = Pattern.compile("\\[[^\\[]*]");
     private static final Pattern WORD_REGEX = Pattern.compile("[a-z']+");
+    private static final Pattern PUNCTUATION = Pattern.compile("(?!['])\\p{Punct}");
 
     public static HashMap<String, Integer> parseTrackLyrics(String rawString) {
         var wordFrequencies = new HashMap<String, Integer>();
@@ -80,17 +79,17 @@ public class LyricAnalyser {
     }
 
     private static ArrayList<String> cleanLyrics(String rawString) {
-        val words = new ArrayList<String>();
 
-        rawString = BRACKET_REGEX.matcher(rawString).replaceAll("");
+        rawString = BRACKET_REGEX.matcher(rawString).replaceAll(" ");
+        rawString = PUNCTUATION.matcher(rawString).replaceAll(" ");
         rawString = rawString.toLowerCase();
 
-        val wordMatcher = WORD_REGEX.matcher(rawString);
+        /*val wordMatcher = WORD_REGEX.matcher(rawString);
 
         while (wordMatcher.find()) {
             words.add(wordMatcher.group()); // Get all of the individual words from the lyrics
-        }
+        }*/
 
-        return words;
+        return new ArrayList<>(Arrays.asList(rawString.split("[ ]+")));
     }
 }
