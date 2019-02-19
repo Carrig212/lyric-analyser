@@ -1,13 +1,12 @@
 package me.william.anderson.lyricanalyser.api;
 
-import me.william.anderson.lyricanalyser.exception.StatusCodeException;
-
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import lombok.NonNull;
 import lombok.val;
+import me.william.anderson.lyricanalyser.exception.StatusCodeException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,9 +84,10 @@ public class ApiConsumer {
 
         // Since we're only querying the api, 200 OK is the only acceptable status code
         if (response.getStatus() != STATUS) {
-            logger.error(url + " responded with status code " + response.getStatus());
-            throw new StatusCodeException(response.getStatus(), STATUS);
+            throw new StatusCodeException(STATUS, response.getStatus(), url);
         }
+
+        logger.info(url + " responded with status " + response.getStatus() + " " + response.getStatusText());
 
         return response;
     }
