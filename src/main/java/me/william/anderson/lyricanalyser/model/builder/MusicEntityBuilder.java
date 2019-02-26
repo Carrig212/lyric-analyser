@@ -84,7 +84,7 @@ public class MusicEntityBuilder {
             }
         }
 
-        logger.info("Album list for artist \"" + artist.getName() + "\" has been built successfully");
+        logger.debug("Album list for artist \"" + artist.getName() + "\" has been built successfully");
 
         return albums;
     }
@@ -122,7 +122,7 @@ public class MusicEntityBuilder {
             }
         }
 
-        logger.info("Track list for album \"" + album.getName() + "\" has been built successfully");
+        logger.debug("Track list for album \"" + album.getName() + "\" has been built successfully");
 
         return tracks;
     }
@@ -163,7 +163,7 @@ public class MusicEntityBuilder {
         music.setWordCount(statistics.getWordCount());
         music.setUniqueWordDensity(statistics.getUniqueWordDensity());
 
-        logger.info("Statistics for " + music.getClass().getSimpleName() + " \"" + music.getName() + "\" have been generated successfully");
+        logger.debug("Statistics for " + music.getClass().getSimpleName() + " \"" + music.getName() + "\" have been generated successfully");
     }
 
     private String getString(JSONObject json, String key) {

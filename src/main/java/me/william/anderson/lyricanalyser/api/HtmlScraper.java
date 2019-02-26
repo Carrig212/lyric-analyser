@@ -46,7 +46,7 @@ public class HtmlScraper {
         // Remove everything but the ID from the string
         val artistIdString = contentString.substring(contentString.lastIndexOf(ARTIST_ID_START) + 1);
 
-        logger.info("Artist ID " + artistIdString + " has been successfully scraped from " + url);
+        logger.debug("Artist ID " + artistIdString + " has been successfully scraped from " + url);
 
         return Long.parseLong(artistIdString);
     }
@@ -58,7 +58,7 @@ public class HtmlScraper {
         val albumLinkList = getHtmlDocument(url).body().getElementsByClass(ALBUM_LINK_CLASS);
         val albumIdList = new ArrayList<Long>();
 
-        logger.info(url + " has been successfully scraped of all album links");
+        logger.debug(url + " has been successfully scraped of all album links");
 
         for (var link : albumLinkList) {
             // Get the ID from each link and add it to the list
@@ -69,7 +69,7 @@ public class HtmlScraper {
             }
         }
 
-        logger.info(url + " has been successfully scraped of all album IDs");
+        logger.debug(url + " has been successfully scraped of all album IDs");
 
         return albumIdList;
     }
@@ -87,7 +87,7 @@ public class HtmlScraper {
                 contentString.indexOf(ALBUM_ID_END)
         );
 
-        logger.info("Album ID " + albumIdString + " has been successfully scraped from " + url);
+        logger.debug("Album ID " + albumIdString + " has been successfully scraped from " + url);
 
         return Long.parseLong(albumIdString);
     }
@@ -98,7 +98,7 @@ public class HtmlScraper {
                 .body()
                 .getElementsByClass(TRACK_LINK_CLASS);
 
-        logger.info(url + " has been successfully scraped of all track links");
+        logger.debug(url + " has been successfully scraped of all track links");
 
         val trackDataList = new ArrayList<TrackData>();
 
@@ -111,7 +111,7 @@ public class HtmlScraper {
             }
         }
 
-        logger.info(url + " has been successfully scraped of all track IDs and lyrics");
+        logger.debug(url + " has been successfully scraped of all track IDs and lyrics");
 
         return trackDataList;
     }
@@ -136,7 +136,7 @@ public class HtmlScraper {
         // Extract the track ID from the string
         val trackId = Long.parseLong(trackIdString.substring(trackIdString.lastIndexOf(TRACK_ID_START) + 1));
 
-        logger.info("Track ID " + trackId + " and lyrics have been successfully scraped from " + url);
+        logger.debug("Track ID " + trackId + " and lyrics have been successfully scraped from " + url);
 
         // Return the ID and lyrics in a data object
         return new TrackData(trackId, trackLyrics);

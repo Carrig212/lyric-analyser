@@ -14,9 +14,10 @@ import lombok.val;
 
 public class LyricAnalyser {
 
-    private static final Pattern BRACKET_REGEX = Pattern.compile("\\[[^\\[]*]");
-    private static final Pattern WORD_REGEX = Pattern.compile("[a-z']+");
-    private static final Pattern PUNCTUATION = Pattern.compile("(?!['])\\p{Punct}");
+    private static final Pattern BRACKETS = Pattern.compile("\\[[^\\[]*]"); // Matches all square brackets and their contents
+    private static final Pattern PUNCTUATION = Pattern.compile("(?!['])\\p{Punct}"); // Matches all punctuation except apostrophes
+    private static final String WHITE_SPACE = "[\\s]+"; // Matches one or more whitespace characters
+    private static final String REPLACEMENT = " "; // Replacement whitespace for punctuation, brackets, etc...
 
     public static HashMap<String, Integer> parseTrackLyrics(String rawString) {
         var wordFrequencies = new HashMap<String, Integer>();
@@ -80,16 +81,10 @@ public class LyricAnalyser {
 
     private static ArrayList<String> cleanLyrics(String rawString) {
 
-        rawString = BRACKET_REGEX.matcher(rawString).replaceAll(" ");
-        rawString = PUNCTUATION.matcher(rawString).replaceAll(" ");
+        rawString = BRACKETS.matcher(rawString).replaceAll(REPLACEMENT); // Remove all song structure markers
+        rawString = PUNCTUATION.matcher(rawString).replaceAll(REPLACEMENT); // Remove all punctuation
         rawString = rawString.toLowerCase();
 
-        /*val wordMatcher = WORD_REGEX.matcher(rawString);
-
-        while (wordMatcher.find()) {
-            words.add(wordMatcher.group()); // Get all of the individual words from the lyrics
-        }*/
-
-        return new ArrayList<>(Arrays.asList(rawString.split("[ ]+")));
+        return new ArrayList<>(Arrays.asList(rawString.split(WHITE_SPACE)));
     }
 }

@@ -87,7 +87,7 @@ public class ApiConsumer {
             throw new StatusCodeException(STATUS, response.getStatus(), url);
         }
 
-        logger.info(url + " responded with status " + response.getStatus() + " " + response.getStatusText());
+        logger.debug(url + " responded with status " + response.getStatus() + " " + response.getStatusText());
 
         return response;
     }
