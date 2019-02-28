@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Component
-@PropertySource("api.properties")
+@PropertySource("application.properties")
 public class ApiConsumer {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiConsumer.class);
