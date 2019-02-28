@@ -11,12 +11,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static me.william.anderson.lyricanalyser.controller.Constants.*;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @SuppressWarnings("Duplicates")
 @RestController
-@RequestMapping("/tracks")
+@RequestMapping(TRACKS_ROUTE)
 public class TrackController {
 
     private final TrackRepository trackRepository;
@@ -25,14 +26,14 @@ public class TrackController {
         this.trackRepository = trackRepository;
     }
 
-    @GetMapping("")
+    @GetMapping
     public ResponseEntity<Resources<Resource<Track>>> findAll() {
 
         List<Resource<Track>> tracks = trackRepository.findAll().stream()
                 .map(track -> new Resource<>(track,
                         linkTo(methodOn(TrackController.class).findOne(track.getId())).withSelfRel(),
-                        linkTo(methodOn(AlbumController.class).findOne(track.getAlbum().getId())).withRel("album"),
-                        linkTo(methodOn(TrackController.class).findAll()).withRel("tracks")))
+                        linkTo(methodOn(AlbumController.class).findOne(track.getAlbum().getId())).withRel(ALBUM_REL),
+                        linkTo(methodOn(TrackController.class).findAll()).withRel(TRACKS_REL)))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(
@@ -40,29 +41,28 @@ public class TrackController {
                         linkTo(methodOn(TrackController.class).findAll()).withSelfRel()));
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<Resources<Resource<Track>>> search(@RequestParam("name") String name) {
+    @GetMapping(SEARCH_ROUTE)
+    public ResponseEntity<Resources<Resource<Track>>> search(@RequestParam(NAME_PARAM) String name) {
         List<Resource<Track>> tracks = trackRepository.findAllByNameIsLike(name).stream()
                 .map(track -> new Resource<>(track,
                         linkTo(methodOn(TrackController.class).findOne(track.getId())).withSelfRel(),
-                        linkTo(methodOn(AlbumController.class).findOne(track.getAlbum().getId())).withRel("album"),
-                        linkTo(methodOn(TrackController.class).findAll()).withRel("tracks")))
+                        linkTo(methodOn(AlbumController.class).findOne(track.getAlbum().getId())).withRel(ALBUM_REL),
+                        linkTo(methodOn(TrackController.class).findAll()).withRel(TRACKS_REL)))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(
                 new Resources<>(tracks,
-                        linkTo(methodOn(TrackController.class).search(name)).withSelfRel())
-        );
+                        linkTo(methodOn(TrackController.class).search(name)).withSelfRel()));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(FIND_ONE_ROUTE)
     public ResponseEntity<Resource<Track>> findOne(@PathVariable long id) {
 
         return trackRepository.findById(id)
                 .map(track -> new Resource<>(track,
                         linkTo(methodOn(TrackController.class).findOne(track.getId())).withSelfRel(),
-                        linkTo(methodOn(AlbumController.class).findOne(track.getAlbum().getId())).withRel("album"),
-                        linkTo(methodOn(TrackController.class).findAll()).withRel("tracks")))
+                        linkTo(methodOn(AlbumController.class).findOne(track.getAlbum().getId())).withRel(ALBUM_REL),
+                        linkTo(methodOn(TrackController.class).findAll()).withRel(TRACKS_REL)))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

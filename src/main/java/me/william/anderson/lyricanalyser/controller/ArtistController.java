@@ -23,13 +23,13 @@ import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static me.william.anderson.lyricanalyser.controller.Constants.*;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @SuppressWarnings("Duplicates")
 @RestController
-@RequestMapping("/artists")
+@RequestMapping(ARTISTS_ROUTE)
 public class ArtistController {
 
     private static final Logger logger = LoggerFactory.getLogger(ArtistController.class);
@@ -45,14 +45,14 @@ public class ArtistController {
         this.builder = builder;
     }
 
-    @GetMapping("")
+    @GetMapping
     public ResponseEntity<Resources<Resource<Artist>>> findAll() {
 
         List<Resource<Artist>> artists = artistRepository.findAll().stream()
                 .map(artist -> new Resource<>(artist,
                         linkTo(methodOn(ArtistController.class).findOne(artist.getId())).withSelfRel(),
-                        linkTo(methodOn(ArtistController.class).findAlbums(artist.getId())).withRel("albums"),
-                        linkTo(methodOn(ArtistController.class).findAll()).withRel("artists")))
+                        linkTo(methodOn(ArtistController.class).findAlbums(artist.getId())).withRel(ALBUMS_REL),
+                        linkTo(methodOn(ArtistController.class).findAll()).withRel(ARTISTS_REL)))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(
@@ -60,51 +60,49 @@ public class ArtistController {
                         linkTo(methodOn(ArtistController.class).findAll()).withSelfRel()));
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<Resources<Resource<Artist>>> search(@RequestParam("name") String name) {
+    @GetMapping(SEARCH_ROUTE)
+    public ResponseEntity<Resources<Resource<Artist>>> search(@RequestParam(NAME_PARAM) String name) {
         List<Resource<Artist>> artists = artistRepository.findAllByNameIsLike(name).stream()
                 .map(artist -> new Resource<>(artist,
                         linkTo(methodOn(ArtistController.class).findOne(artist.getId())).withSelfRel(),
-                        linkTo(methodOn(ArtistController.class).findAlbums(artist.getId())).withRel("albums"),
-                        linkTo(methodOn(ArtistController.class).findAll()).withRel("artists")))
+                        linkTo(methodOn(ArtistController.class).findAlbums(artist.getId())).withRel(ALBUMS_REL),
+                        linkTo(methodOn(ArtistController.class).findAll()).withRel(ARTISTS_REL)))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(
                 new Resources<>(artists,
-                        linkTo(methodOn(ArtistController.class).search(name)).withSelfRel())
-        );
+                        linkTo(methodOn(ArtistController.class).search(name)).withSelfRel()));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(FIND_ONE_ROUTE)
     public ResponseEntity<Resource<Artist>> findOne(@PathVariable long id) {
 
         return artistRepository.findById(id)
                 .map(artist -> new Resource<>(artist,
                         linkTo(methodOn(ArtistController.class).findOne(artist.getId())).withSelfRel(),
-                        linkTo(methodOn(ArtistController.class).findAlbums(artist.getId())).withRel("albums"),
-                        linkTo(methodOn(ArtistController.class).findAll()).withRel("artists")))
+                        linkTo(methodOn(ArtistController.class).findAlbums(artist.getId())).withRel(ALBUMS_REL),
+                        linkTo(methodOn(ArtistController.class).findAll()).withRel(ARTISTS_REL)))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/{id}/albums")
+    @GetMapping(FIND_ALBUMS_ROUTE)
     public ResponseEntity<Resources<Resource<Album>>> findAlbums(@PathVariable long id) {
         List<Resource<Album>> albums = albumRepository.findAllByArtistId(id).stream()
                 .map(album -> new Resource<>(album,
                         linkTo(methodOn(AlbumController.class).findOne(album.getId())).withSelfRel(),
-                        linkTo(methodOn(AlbumController.class).findAll()).withRel("albums"),
-                        linkTo(methodOn(ArtistController.class).findOne(id)).withRel("artist"),
-                        linkTo(methodOn(AlbumController.class).findTracks(album.getId())).withRel("tracks")))
+                        linkTo(methodOn(AlbumController.class).findAll()).withRel(ALBUMS_REL),
+                        linkTo(methodOn(ArtistController.class).findOne(id)).withRel(ARTIST_REL),
+                        linkTo(methodOn(AlbumController.class).findTracks(album.getId())).withRel(TRACKS_REL)))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(
                 new Resources<>(albums,
                         linkTo(methodOn(ArtistController.class).findAlbums(id)).withSelfRel(),
-                        linkTo(methodOn(ArtistController.class).findOne(id)).withRel("artist"))
-        );
+                        linkTo(methodOn(ArtistController.class).findOne(id)).withRel(ARTIST_REL)));
     }
 
-    @PostMapping(path = "/submit", consumes = APPLICATION_JSON_VALUE)
+    @PostMapping(path = SUBMIT_ARTIST_ROUTE, consumes = ACCEPT_JSON)
     public ResponseEntity<Resource<Artist>> create(@RequestBody ArtistSubmission submission) {
         val url = submission.getUrl();
         long apiId;
@@ -120,13 +118,13 @@ public class ArtistController {
         Artist savedArtist = artistRepository.findByApiId(apiId);
 
         if (savedArtist != null) {
-            return findOne(savedArtist.getId());
+            return findOne(savedArtist.getId()); // If the artist already exists in the database, return that artist
         }
 
         Artist artist;
 
         try {
-            artist = builder.buildArtist(url);
+            artist = builder.buildArtist(url); // Otherwise, analyse the artist
         } catch (Exception e) {
             logger.error("An exception was encountered while trying to build artist " + url, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
