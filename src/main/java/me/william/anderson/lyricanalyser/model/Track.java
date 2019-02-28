@@ -1,28 +1,23 @@
 package me.william.anderson.lyricanalyser.model;
 
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
-import javax.validation.constraints.NotNull;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Collection;
-
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @Entity
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @ToString(callSuper = true)
+@JsonIgnoreProperties(ignoreUnknown=true)
 public class Track extends Music {
 
     @NotNull
     @ManyToOne
     @JoinColumn(name = "albumId")
+    @JsonIgnore
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @Getter
@@ -41,6 +36,7 @@ public class Track extends Music {
     private String lyricsState;
 
     @Transient
+    @JsonIgnore
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @Getter

@@ -18,8 +18,8 @@ class Sorter {
                 .stream()
                 .sorted(comparingByValue())
                 .collect(
-                    toMap(Entry::getKey, Entry::getValue, (e1, e2) -> e2,
-                        LinkedHashMap::new));
+                        toMap(Entry::getKey, Entry::getValue, (e1, e2) -> e2,
+                                LinkedHashMap::new));
     }
 
     static HashMap<String, Integer> sortHashMapByValueDescending(Map<String, Integer> map) {
@@ -28,8 +28,8 @@ class Sorter {
                 .stream()
                 .sorted(reverseOrder(comparingByValue()))
                 .collect(
-                    toMap(Entry::getKey, Entry::getValue, (e1, e2) -> e2,
-                        LinkedHashMap::new));
+                        toMap(Entry::getKey, Entry::getValue, (e1, e2) -> e2,
+                                LinkedHashMap::new));
     }
 
     static HashMap<String, Integer> sortHashMapByKeyAscending(Map<String, Integer> map) {
@@ -38,17 +38,17 @@ class Sorter {
                 .stream()
                 .sorted(comparingByKey())
                 .collect(
-                    toMap(Entry::getKey, Entry::getValue, (e1, e2) -> e2,
-                        LinkedHashMap::new));
+                        toMap(Entry::getKey, Entry::getValue, (e1, e2) -> e2,
+                                LinkedHashMap::new));
     }
-    
+
     static HashMap<String, Integer> sortHashMapByKeyDescending(Map<String, Integer> map) {
         return map
                 .entrySet()
                 .stream()
                 .sorted(reverseOrder(comparingByKey()))
                 .collect(
-                    toMap(Entry::getKey, Entry::getValue, (e1, e2) -> e2,
-                        LinkedHashMap::new));
+                        toMap(Entry::getKey, Entry::getValue, (e1, e2) -> e2,
+                                LinkedHashMap::new));
     }
 }

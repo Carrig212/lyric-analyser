@@ -1,24 +1,27 @@
 package me.william.anderson.lyricanalyser.model.builder;
 
-import lombok.NonNull;
-import lombok.val;
 import me.william.anderson.lyricanalyser.analyser.LyricAnalyser;
 import me.william.anderson.lyricanalyser.api.ApiConsumer;
 import me.william.anderson.lyricanalyser.api.HtmlScraper;
 import me.william.anderson.lyricanalyser.exception.MalformedRequestException;
+import me.william.anderson.lyricanalyser.exception.StatusCodeException;
 import me.william.anderson.lyricanalyser.model.Album;
 import me.william.anderson.lyricanalyser.model.Artist;
 import me.william.anderson.lyricanalyser.model.Music;
 import me.william.anderson.lyricanalyser.model.Track;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.mashape.unirest.http.exceptions.UnirestException;
+import java.io.IOException;
+import java.util.ArrayList;
+import lombok.NonNull;
+import lombok.val;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.util.ArrayList;
 
 @Component
 @SuppressWarnings("Duplicates")
@@ -48,27 +51,23 @@ public class MusicEntityBuilder {
         this.consumer = consumer;
     }
 
-    public Artist buildArtist(String url) {
+    public Artist buildArtist(String url) throws IOException, MalformedRequestException, StatusCodeException, UnirestException {
         val artist = new Artist();
 
-        try {
-            logger.info("Now building artist " + url);
-            val json = consumer.getArtist(HtmlScraper.scrapeArtistId(url));
+        logger.info("Now building artist " + url);
+        val json = consumer.getArtist(HtmlScraper.scrapeArtistId(url));
 
-            artist.setApiId(json.getLong(ID));
-            artist.setName(getString(json, NAME));
-            artist.setGeniusUrl(getString(json, URL));
-            artist.setImageUrl(getString(json, IMAGE_URL));
+        artist.setApiId(json.getLong(ID));
+        artist.setName(getString(json, NAME).toLowerCase());
+        artist.setGeniusUrl(getString(json, URL));
+        artist.setImageUrl(getString(json, IMAGE_URL));
 
-            artist.setAlbums(buildAlbumList(artist));
+        artist.setAlbums(buildAlbumList(artist));
 
-            artist.setWordFrequencies(LyricAnalyser.parseArtistLyrics(artist));
-            buildStatistics(artist);
+        artist.setWordFrequencies(LyricAnalyser.parseArtistLyrics(artist));
+        buildStatistics(artist);
 
-            logger.info("Artist \"" + artist.getName() + "\" has been built successfully");
-        } catch (Exception e) {
-            logger.error("Artist " + url + " threw an exception and could not be built", e);
-        }
+        logger.info("Artist \"" + artist.getName() + "\" has been built successfully");
 
         return artist;
     }
@@ -93,7 +92,7 @@ public class MusicEntityBuilder {
         val album = new Album();
 
         album.setApiId(json.getLong(ID));
-        album.setName(getString(json, NAME));
+        album.setName(getString(json, NAME).toLowerCase());
         album.setGeniusUrl(getString(json, URL));
         album.setImageUrl(getString(json, COVER_URL));
 
@@ -131,7 +130,7 @@ public class MusicEntityBuilder {
         val track = new Track();
 
         track.setApiId(json.getLong(ID));
-        track.setName(getString(json, TITLE));
+        track.setName(getString(json, TITLE).toLowerCase());
         track.setGeniusUrl(getString(json, URL));
         track.setImageUrl(getString(json, SONG_ART_URL));
 

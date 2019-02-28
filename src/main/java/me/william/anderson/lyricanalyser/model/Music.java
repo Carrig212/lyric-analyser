@@ -1,25 +1,17 @@
 package me.william.anderson.lyricanalyser.model;
 
-import javax.persistence.ElementCollection;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.validation.constraints.NotNull;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Date;
 import java.util.Map;
-
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import lombok.*;
 
 @MappedSuperclass
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @ToString
+@JsonIgnoreProperties(ignoreUnknown=true)
 public abstract class Music {
 
     @NotNull
@@ -80,6 +72,7 @@ public abstract class Music {
     @PrePersist
     private void setCreated() {
         this.created = new Date();
+        this.lastUpdated = new Date();
     }
 
     @PreUpdate
