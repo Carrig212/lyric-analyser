@@ -22,6 +22,7 @@ public class Album extends Music {
 
     @NotNull
     @OneToMany(mappedBy = "album", cascade = CascadeType.ALL)
+    @JsonIgnore
     @Getter
     @Setter
     private Collection<Track> tracks;

@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
@@ -18,6 +19,7 @@ public class Artist extends Music {
 
     @NotNull
     @OneToMany(mappedBy = "artist", cascade = CascadeType.ALL)
+    @JsonIgnore
     @Getter
     @Setter
     private Collection<Album> albums;

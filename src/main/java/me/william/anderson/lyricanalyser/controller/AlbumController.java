@@ -80,12 +80,14 @@ public class AlbumController {
         List<Resource<Track>> tracks = trackRepository.findAllByAlbumId(id).stream()
                 .map(track -> new Resource<>(track,
                         linkTo(methodOn(TrackController.class).findOne(track.getId())).withSelfRel(),
-                        linkTo(methodOn(AlbumController.class).findOne(id)).withRel(ALBUM_REL)))
+                        linkTo(methodOn(AlbumController.class).findOne(id)).withRel(ALBUM_REL),
+                        linkTo(methodOn(TrackController.class).findAll()).withRel(TRACKS_REL)))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(
                 new Resources<>(tracks,
                         linkTo(methodOn(AlbumController.class).findTracks(id)).withSelfRel(),
-                        linkTo(methodOn(AlbumController.class).findOne(id)).withRel(ALBUM_REL)));
+                        linkTo(methodOn(AlbumController.class).findOne(id)).withRel(ALBUM_REL),
+                        linkTo(methodOn(TrackController.class).findAll()).withRel(TRACKS_REL)));
     }
 }
