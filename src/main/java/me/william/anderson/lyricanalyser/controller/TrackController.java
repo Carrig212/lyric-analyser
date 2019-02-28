@@ -1,5 +1,8 @@
 package me.william.anderson.lyricanalyser.controller;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import me.william.anderson.lyricanalyser.model.Track;
 import me.william.anderson.lyricanalyser.repository.TrackRepository;
 
@@ -8,10 +11,8 @@ import org.springframework.hateoas.Resources;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import static me.william.anderson.lyricanalyser.controller.Constants.*;
+
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 

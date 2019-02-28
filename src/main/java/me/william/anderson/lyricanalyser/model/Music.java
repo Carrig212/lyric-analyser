@@ -1,17 +1,18 @@
 package me.william.anderson.lyricanalyser.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Date;
 import java.util.Map;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
 @MappedSuperclass
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @ToString
-@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class Music {
 
     @NotNull

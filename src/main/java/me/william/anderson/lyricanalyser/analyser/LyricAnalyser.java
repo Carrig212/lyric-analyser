@@ -1,17 +1,18 @@
 package me.william.anderson.lyricanalyser.analyser;
 
-import me.william.anderson.lyricanalyser.model.Album;
-import me.william.anderson.lyricanalyser.model.Artist;
-import me.william.anderson.lyricanalyser.model.Music;
-import me.william.anderson.lyricanalyser.model.Track;
-import me.william.anderson.lyricanalyser.model.data.Statistics;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
+
+import me.william.anderson.lyricanalyser.model.Album;
+import me.william.anderson.lyricanalyser.model.Artist;
+import me.william.anderson.lyricanalyser.model.Music;
+import me.william.anderson.lyricanalyser.model.Track;
+import me.william.anderson.lyricanalyser.model.data.Statistics;
+
 import lombok.val;
 
 public class LyricAnalyser {

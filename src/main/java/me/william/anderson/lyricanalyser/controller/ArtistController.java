@@ -1,5 +1,9 @@
 package me.william.anderson.lyricanalyser.controller;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import me.william.anderson.lyricanalyser.api.HtmlScraper;
 import me.william.anderson.lyricanalyser.exception.MalformedRequestException;
 import me.william.anderson.lyricanalyser.model.Album;
@@ -16,14 +20,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static me.william.anderson.lyricanalyser.controller.Constants.*;
+
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 

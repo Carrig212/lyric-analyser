@@ -1,5 +1,8 @@
 package me.william.anderson.lyricanalyser.model.builder;
 
+import java.io.IOException;
+import java.util.ArrayList;
+
 import me.william.anderson.lyricanalyser.analyser.LyricAnalyser;
 import me.william.anderson.lyricanalyser.api.ApiConsumer;
 import me.william.anderson.lyricanalyser.api.HtmlScraper;
@@ -14,8 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.mashape.unirest.http.exceptions.UnirestException;
-import java.io.IOException;
-import java.util.ArrayList;
 import lombok.NonNull;
 import lombok.val;
 import org.json.JSONException;

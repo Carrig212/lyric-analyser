@@ -1,10 +1,11 @@
 package me.william.anderson.lyricanalyser.api;
 
+import java.io.IOException;
+import java.util.ArrayList;
+
 import me.william.anderson.lyricanalyser.exception.MalformedRequestException;
 import me.william.anderson.lyricanalyser.model.data.TrackData;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import lombok.val;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
