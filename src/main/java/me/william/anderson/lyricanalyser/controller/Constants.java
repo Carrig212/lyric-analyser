@@ -1,6 +1,7 @@
 package me.william.anderson.lyricanalyser.controller;
 
-class Constants {
+abstract class Constants {
+
     // Artist routes
     static final String ARTISTS_ROUTE = "/artists";
     static final String FIND_ALBUMS_ROUTE = "/{id}/albums";
@@ -16,6 +17,7 @@ class Constants {
     // General routes
     static final String SEARCH_ROUTE = "/search";
     static final String FIND_ONE_ROUTE = "/{id}";
+    static final String UPDATE_ROUTE = "/{id}/update";
 
     // Aggregate rels
     static final String ARTISTS_REL = "artists";

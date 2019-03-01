@@ -1,6 +1,5 @@
 package me.william.anderson.lyricanalyser.controller;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 import me.william.anderson.lyricanalyser.model.Track;
@@ -10,6 +9,8 @@ import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import lombok.val;
 
 import static me.william.anderson.lyricanalyser.controller.Constants.*;
 
@@ -29,8 +30,7 @@ public class TrackController {
 
     @GetMapping
     public ResponseEntity<Resources<Resource<Track>>> findAll() {
-
-        List<Resource<Track>> tracks = trackRepository.findAll().stream()
+        val tracks = trackRepository.findAll().stream()
                 .map(track -> new Resource<>(track,
                         linkTo(methodOn(TrackController.class).findOne(track.getId())).withSelfRel(),
                         linkTo(methodOn(AlbumController.class).findOne(track.getAlbum().getId())).withRel(ALBUM_REL),
@@ -44,7 +44,7 @@ public class TrackController {
 
     @GetMapping(SEARCH_ROUTE)
     public ResponseEntity<Resources<Resource<Track>>> search(@RequestParam(NAME_PARAM) String name) {
-        List<Resource<Track>> tracks = trackRepository.findAllByNameIsLike(name).stream()
+        val tracks = trackRepository.findAllByNameIsLike(name).stream()
                 .map(track -> new Resource<>(track,
                         linkTo(methodOn(TrackController.class).findOne(track.getId())).withSelfRel(),
                         linkTo(methodOn(AlbumController.class).findOne(track.getAlbum().getId())).withRel(ALBUM_REL),
@@ -66,5 +66,19 @@ public class TrackController {
                         linkTo(methodOn(TrackController.class).findAll()).withRel(TRACKS_REL)))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping(UPDATE_ROUTE)
+    public ResponseEntity<Resource<Track>> markDuplicate(@PathVariable long id) {
+        val track = trackRepository.getOne(id);
+
+        if (track == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        track.setDuplicate(!track.isDuplicate());
+        trackRepository.save(track);
+
+        return ResponseEntity.noContent().build();
     }
 }

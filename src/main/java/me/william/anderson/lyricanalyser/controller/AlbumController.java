@@ -1,6 +1,5 @@
 package me.william.anderson.lyricanalyser.controller;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 import me.william.anderson.lyricanalyser.model.Album;
@@ -12,6 +11,8 @@ import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import lombok.val;
 
 import static me.william.anderson.lyricanalyser.controller.Constants.*;
 
@@ -34,7 +35,7 @@ public class AlbumController {
     @GetMapping
     public ResponseEntity<Resources<Resource<Album>>> findAll() {
 
-        List<Resource<Album>> albums = albumRepository.findAll().stream()
+        val albums = albumRepository.findAll().stream()
                 .map(album -> new Resource<>(album,
                         linkTo(methodOn(AlbumController.class).findOne(album.getId())).withSelfRel(),
                         linkTo(methodOn(ArtistController.class).findOne(album.getArtist().getId())).withRel(ARTIST_REL),
@@ -49,7 +50,7 @@ public class AlbumController {
 
     @GetMapping(SEARCH_ROUTE)
     public ResponseEntity<Resources<Resource<Album>>> search(@RequestParam(NAME_PARAM) String name) {
-        List<Resource<Album>> albums = albumRepository.findAllByNameIsLike(name).stream()
+        val albums = albumRepository.findAllByNameIsLike(name).stream()
                 .map(album -> new Resource<>(album,
                         linkTo(methodOn(AlbumController.class).findOne(album.getId())).withSelfRel(),
                         linkTo(methodOn(ArtistController.class).findOne(album.getArtist().getId())).withRel(ARTIST_REL),
@@ -77,7 +78,7 @@ public class AlbumController {
 
     @GetMapping(FIND_TRACKS_ROUTE)
     public ResponseEntity<Resources<Resource<Track>>> findTracks(@PathVariable long id) {
-        List<Resource<Track>> tracks = trackRepository.findAllByAlbumId(id).stream()
+        val tracks = trackRepository.findAllByAlbumId(id).stream()
                 .map(track -> new Resource<>(track,
                         linkTo(methodOn(TrackController.class).findOne(track.getId())).withSelfRel(),
                         linkTo(methodOn(AlbumController.class).findOne(id)).withRel(ALBUM_REL),
@@ -89,5 +90,19 @@ public class AlbumController {
                         linkTo(methodOn(AlbumController.class).findTracks(id)).withSelfRel(),
                         linkTo(methodOn(AlbumController.class).findOne(id)).withRel(ALBUM_REL),
                         linkTo(methodOn(TrackController.class).findAll()).withRel(TRACKS_REL)));
+    }
+
+    @PutMapping(UPDATE_ROUTE)
+    public ResponseEntity<Resource<Album>> markDuplicate(@PathVariable long id) {
+        val album = albumRepository.getOne(id);
+
+        if (album == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        album.setDuplicate(!album.isDuplicate());
+        albumRepository.save(album);
+
+        return ResponseEntity.noContent().build();
     }
 }
