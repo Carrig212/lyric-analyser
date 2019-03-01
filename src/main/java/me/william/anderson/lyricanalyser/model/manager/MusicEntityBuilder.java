@@ -1,7 +1,8 @@
-package me.william.anderson.lyricanalyser.model.builder;
+package me.william.anderson.lyricanalyser.model.manager;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import me.william.anderson.lyricanalyser.analyser.LyricAnalyser;
 import me.william.anderson.lyricanalyser.api.ApiConsumer;
@@ -21,31 +22,15 @@ import lombok.NonNull;
 import lombok.val;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static me.william.anderson.lyricanalyser.model.manager.Constants.*;
 
 @Component
 @SuppressWarnings("Duplicates")
 public class MusicEntityBuilder {
 
-    // Constants
-    private static final String ID = "id";
-    private static final String NAME = "name";
-    private static final String URL = "url";
-
-    private static final String IMAGE_URL = "image_url";
-
-    private static final String COVER_URL = "cover_art_url";
-    private static final String RELEASE_DATE = "release_date";
-
-    private static final String TITLE = "title";
-    private static final String SONG_ART_URL = "song_art_image_url";
-    private static final String FEATURED = "featured_artists";
-    private static final String LYRICS_STATE = "lyrics_state";
-
     @NonNull
     private final ApiConsumer consumer;
-    private Logger logger = LoggerFactory.getLogger(MusicEntityBuilder.class);
 
     @Autowired
     public MusicEntityBuilder(ApiConsumer consumer) {
@@ -55,7 +40,6 @@ public class MusicEntityBuilder {
     public Artist buildArtist(String url) throws IOException, MalformedRequestException, StatusCodeException, UnirestException {
         val artist = new Artist();
 
-        logger.info("Now building artist " + url);
         val json = consumer.getArtist(HtmlScraper.scrapeArtistId(url));
 
         artist.setApiId(json.getLong(ID));
@@ -67,24 +51,22 @@ public class MusicEntityBuilder {
 
         artist.setWordFrequencies(LyricAnalyser.parseArtistLyrics(artist));
         buildStatistics(artist);
-
-        logger.info("Artist \"" + artist.getName() + "\" has been built successfully");
+        artist.setTrends(LyricAnalyser.generateArtistTrends(artist));
 
         return artist;
     }
 
     private ArrayList<Album> buildAlbumList(Artist artist) throws MalformedRequestException, IOException {
-        val albums = new ArrayList<Album>();
+        var albums = new ArrayList<Album>();
 
         for (var id : HtmlScraper.scrapeAlbumIdList(artist.getApiId())) {
             try {
                 albums.add(buildAlbum(consumer.getAlbum(id), artist));
-            } catch (Exception e) {
-                logger.warn("API request for album " + id + " threw an exception. It will be excluded from analysis", e);
+            } catch (Exception ignored) {
             }
         }
 
-        logger.debug("Album list for artist \"" + artist.getName() + "\" has been built successfully");
+        Collections.sort(albums);
 
         return albums;
     }
@@ -104,8 +86,7 @@ public class MusicEntityBuilder {
 
         album.setWordFrequencies(LyricAnalyser.parseAlbumLyrics(album));
         buildStatistics(album);
-
-        logger.info("Album \"" + album.getName() + "\" has been built successfully");
+        album.setTrends(LyricAnalyser.generateAlbumTrends(album));
 
         return album;
     }
@@ -117,12 +98,9 @@ public class MusicEntityBuilder {
             try {
                 val json = consumer.getTrack(trackData.getId());
                 tracks.add(buildTrack(json, album, trackData.getLyrics()));
-            } catch (Exception e) {
-                logger.warn("API request for track " + trackData.getId() + " threw an exception. It will be excluded from analysis", e);
+            } catch (Exception ignored) {
             }
         }
-
-        logger.debug("Track list for album \"" + album.getName() + "\" has been built successfully");
 
         return tracks;
     }
@@ -151,8 +129,6 @@ public class MusicEntityBuilder {
         track.setWordFrequencies(LyricAnalyser.parseTrackLyrics(track.getLyrics()));
         buildStatistics(track);
 
-        logger.info("Track \"" + track.getName() + "\" has been built successfully");
-
         return track;
     }
 
@@ -162,15 +138,12 @@ public class MusicEntityBuilder {
         music.setUniqueWordCount(statistics.getUniqueWordCount());
         music.setWordCount(statistics.getWordCount());
         music.setUniqueWordDensity(statistics.getUniqueWordDensity());
-
-        logger.debug("Statistics for " + music.getClass().getSimpleName() + " \"" + music.getName() + "\" have been generated successfully");
     }
 
     private String getString(JSONObject json, String key) {
         try {
             return json.getString(key);
         } catch (JSONException e) {
-            logger.warn("The field with key \"" + key + "\" could not be found. It has been replaced with a default value");
             return "N/A";
         }
     }
