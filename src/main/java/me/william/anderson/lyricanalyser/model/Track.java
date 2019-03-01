@@ -5,19 +5,20 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
+
+import static me.william.anderson.lyricanalyser.model.Constants.ALBUM_ID;
+import static me.william.anderson.lyricanalyser.model.Constants.DUPLICATE_FALSE;
 
 @Entity
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @ToString(callSuper = true)
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Track extends Music {
 
     @NotNull
     @ManyToOne
-    @JoinColumn(name = "albumId")
+    @JoinColumn(name = ALBUM_ID)
     @JsonIgnore
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -27,6 +28,7 @@ public class Track extends Music {
 
     @NotNull
     @ElementCollection
+    @OrderColumn
     @Getter
     @Setter
     private Collection<String> featuredArtists;
@@ -43,4 +45,9 @@ public class Track extends Music {
     @Getter
     @Setter
     private String lyrics;
+
+    @NotNull
+    @Getter
+    @Setter
+    private boolean duplicate = DUPLICATE_FALSE;
 }

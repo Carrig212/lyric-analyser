@@ -1,19 +1,20 @@
 package me.william.anderson.lyricanalyser.model;
 
 import java.util.Collection;
+import java.util.Map;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
+
+import static me.william.anderson.lyricanalyser.model.Constants.*;
 
 @Entity
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @ToString(callSuper = true)
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Album extends Music {
+public class Album extends Music implements Comparable<Album> {
 
     @NotNull
     @Getter
@@ -21,7 +22,8 @@ public class Album extends Music {
     private String releaseDate;
 
     @NotNull
-    @OneToMany(mappedBy = "album", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = ALBUM, cascade = CascadeType.ALL)
+    @OrderColumn
     @JsonIgnore
     @Getter
     @Setter
@@ -29,11 +31,28 @@ public class Album extends Music {
 
     @NotNull
     @ManyToOne
-    @JoinColumn(name = "artistId")
+    @JoinColumn(name = ARTIST_ID)
     @JsonIgnore
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @Getter
     @Setter
     private Artist artist;
+
+    @NotNull
+    @Getter
+    @Setter
+    private boolean duplicate = DUPLICATE_FALSE;
+
+    @NotNull
+    @ElementCollection
+    @OrderColumn
+    @Getter
+    @Setter
+    private Map<String, Float> trends;
+
+    @Override
+    public int compareTo(Album album) {
+        return getReleaseDate().compareTo(album.getReleaseDate());
+    }
 }
