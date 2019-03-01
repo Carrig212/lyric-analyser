@@ -4,37 +4,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import me.william.anderson.lyricanalyser.exception.MalformedRequestException;
-import me.william.anderson.lyricanalyser.model.data.TrackData;
+import me.william.anderson.lyricanalyser.model.data.TrackDataModel;
 
 import lombok.val;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static me.william.anderson.lyricanalyser.api.Constants.*;
 
 public class HtmlScraper {
-
-    private static final Logger logger = LoggerFactory.getLogger(HtmlScraper.class);
-
-    private static final String URL = "https://genius.com";
-
-    private static final String ARTIST_ID_KEY = "name";
-    private static final String ARTIST_ID_VALUE = "newrelic-resource-path";
-    private static final String ARTIST_ID_START = "/";
-    private static final String ARTIST_ALBUMS = "/artists/albums?for_artist_page=";
-
-    private static final String ALBUM_LINK_CLASS = "album_link";
-    private static final String ALBUM_LINK_ATTRIBUTE = "href";
-    private static final String ALBUM_ID_KEY = "itemprop";
-    private static final String ALBUM_ID_VALUE = "page_data";
-    private static final String ALBUM_ID_ATTRIBUTE = "content";
-    private static final String ALBUM_ID_START = "album_ids\":\"[";
-    private static final String ALBUM_ID_END = "]\",\"artist\"";
-
-    private static final String TRACK_LINK_CLASS = "u-display_block";
-    private static final String TRACK_LYRICS_CLASS = "lyrics";
-    private static final String TRACK_ID_ATTRIBUTE = "content";
-    private static final String TRACK_ID_START = "/";
 
     public static long scrapeArtistId(String url) throws IOException, MalformedRequestException {
         // Get the meta tag with the artist ID from the head
@@ -47,30 +25,23 @@ public class HtmlScraper {
         // Remove everything but the ID from the string
         val artistIdString = contentString.substring(contentString.lastIndexOf(ARTIST_ID_START) + 1);
 
-        logger.debug("Artist ID " + artistIdString + " has been successfully scraped from " + url);
-
         return Long.parseLong(artistIdString);
     }
 
     public static ArrayList<Long> scrapeAlbumIdList(long id) throws IOException, MalformedRequestException {
-        val url = URL + ARTIST_ALBUMS + id;
+        val url = GENIUS_COM + ARTIST_ALBUMS + id;
 
         // Get a list of all album links from the body
         val albumLinkList = getHtmlDocument(url).body().getElementsByClass(ALBUM_LINK_CLASS);
         val albumIdList = new ArrayList<Long>();
 
-        logger.debug(url + " has been successfully scraped of all album links");
-
-        for (var link : albumLinkList) {
+        for (val link : albumLinkList) {
             // Get the ID from each link and add it to the list
             try {
-                albumIdList.add(scrapeAlbumId(URL + link.attr(ALBUM_LINK_ATTRIBUTE)));
-            } catch (Exception e) {
-                logger.warn(link.attr(ALBUM_LINK_ATTRIBUTE) + " threw an exception. It will be excluded from analysis", e);
+                albumIdList.add(scrapeAlbumId(GENIUS_COM + link.attr(ALBUM_LINK_ATTRIBUTE)));
+            } catch (Exception ignored) {
             }
         }
-
-        logger.debug(url + " has been successfully scraped of all album IDs");
 
         return albumIdList;
     }
@@ -88,36 +59,29 @@ public class HtmlScraper {
                 contentString.indexOf(ALBUM_ID_END)
         );
 
-        logger.debug("Album ID " + albumIdString + " has been successfully scraped from " + url);
-
         return Long.parseLong(albumIdString);
     }
 
-    public static ArrayList<TrackData> scrapeTrackList(String url) throws IOException, MalformedRequestException {
+    public static ArrayList<TrackDataModel> scrapeTrackList(String url) throws IOException, MalformedRequestException {
         // Get the list of track links from the body
         val trackLinkList = getHtmlDocument(url)
                 .body()
                 .getElementsByClass(TRACK_LINK_CLASS);
 
-        logger.debug(url + " has been successfully scraped of all track links");
+        val trackDataList = new ArrayList<TrackDataModel>();
 
-        val trackDataList = new ArrayList<TrackData>();
-
-        for (var link : trackLinkList) {
+        for (val link : trackLinkList) {
             // Get the ID and lyrics from each page and add them to the list
             try {
                 trackDataList.add(scrapeTrackIdAndLyrics(link.attr(ALBUM_LINK_ATTRIBUTE)));
-            } catch (Exception e) {
-                logger.warn(link.attr(ALBUM_LINK_ATTRIBUTE) + " threw an exception. It will be excluded from analysis", e);
+            } catch (Exception ignored) {
             }
         }
-
-        logger.debug(url + " has been successfully scraped of all track IDs and lyrics");
 
         return trackDataList;
     }
 
-    private static TrackData scrapeTrackIdAndLyrics(String url) throws IOException, MalformedRequestException {
+    private static TrackDataModel scrapeTrackIdAndLyrics(String url) throws IOException, MalformedRequestException {
         val document = getHtmlDocument(url);
 
         // Get the track ID from the meta tag in the head
@@ -137,16 +101,14 @@ public class HtmlScraper {
         // Extract the track ID from the string
         val trackId = Long.parseLong(trackIdString.substring(trackIdString.lastIndexOf(TRACK_ID_START) + 1));
 
-        logger.debug("Track ID " + trackId + " and lyrics have been successfully scraped from " + url);
-
         // Return the ID and lyrics in a data object
-        return new TrackData(trackId, trackLyrics);
+        return new TrackDataModel(trackId, trackLyrics);
     }
 
     private static Document getHtmlDocument(String url) throws IOException, MalformedRequestException {
-        // Check that the URL is formatted correctly
-        if (!url.substring(0, URL.length()).equals(URL)) {
-            throw new MalformedRequestException(url, URL);
+        // Check that the GENIUS_COM is formatted correctly
+        if (!url.substring(0, GENIUS_COM.length()).equals(GENIUS_COM)) {
+            throw new MalformedRequestException(url, GENIUS_COM);
         }
 
         // Test to see if we can actually connect to the server
