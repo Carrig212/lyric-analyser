@@ -2,31 +2,25 @@ package me.william.anderson.lyricanalyser.analyser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.regex.Pattern;
 
 import me.william.anderson.lyricanalyser.model.Album;
 import me.william.anderson.lyricanalyser.model.Artist;
 import me.william.anderson.lyricanalyser.model.Music;
-import me.william.anderson.lyricanalyser.model.Track;
-import me.william.anderson.lyricanalyser.model.data.Statistics;
+import me.william.anderson.lyricanalyser.model.data.StatisticsModel;
 
 import lombok.val;
 
+import static me.william.anderson.lyricanalyser.analyser.Constants.*;
+
 public class LyricAnalyser {
 
-    private static final Pattern BRACKETS = Pattern.compile("\\[[^\\[]*]"); // Matches all square brackets and their contents
-    private static final Pattern PUNCTUATION = Pattern.compile("(?!['])\\p{Punct}"); // Matches all punctuation except apostrophes
-    private static final String WHITE_SPACE = "[\\s]+"; // Matches one or more whitespace characters
-    private static final String REPLACEMENT = " "; // Replacement whitespace for punctuation, brackets, etc...
-
-    public static HashMap<String, Integer> parseTrackLyrics(String rawString) {
-        var wordFrequencies = new HashMap<String, Integer>();
+    public static LinkedHashMap<String, Integer> parseTrackLyrics(String rawString) {
+        var wordFrequencies = new LinkedHashMap<String, Integer>();
         val words = cleanLyrics(rawString);
 
-        for (var word : words) {
+        for (val word : words) {
             wordFrequencies.put(word, !wordFrequencies.containsKey(word) ? 1 : wordFrequencies.get(word) + 1); // Remove and count duplicates
         }
 
@@ -35,10 +29,14 @@ public class LyricAnalyser {
         return wordFrequencies;
     }
 
-    public static HashMap<String, Integer> parseAlbumLyrics(Album album) {
-        var wordFrequencies = new HashMap<String, Integer>();
+    public static LinkedHashMap<String, Integer> parseAlbumLyrics(Album album) {
+        var wordFrequencies = new LinkedHashMap<String, Integer>();
 
-        for (Track track : album.getTracks()) {
+        for (val track : album.getTracks()) {
+            if (track.isDuplicate()) {
+                continue;
+            }
+
             mergeWordFrequencies(track.getWordFrequencies(), wordFrequencies);
         }
 
@@ -47,10 +45,14 @@ public class LyricAnalyser {
         return wordFrequencies;
     }
 
-    public static HashMap<String, Integer> parseArtistLyrics(Artist artist) {
-        var wordFrequencies = new HashMap<String, Integer>();
+    public static LinkedHashMap<String, Integer> parseArtistLyrics(Artist artist) {
+        var wordFrequencies = new LinkedHashMap<String, Integer>();
 
-        for (var album : artist.getAlbums()) {
+        for (val album : artist.getAlbums()) {
+            if (album.isDuplicate()) {
+                continue;
+            }
+
             mergeWordFrequencies(album.getWordFrequencies(), wordFrequencies);
         }
 
@@ -59,21 +61,49 @@ public class LyricAnalyser {
         return wordFrequencies;
     }
 
-    public static Statistics generateStatistics(Music music) {
+    public static StatisticsModel generateStatistics(Music music) {
         val uniqueWordCount = music.getWordFrequencies().size();
         var wordCount = 0;
 
-        for (Entry<String, Integer> entry : music.getWordFrequencies().entrySet()) { // Iterate over the word frequencies
+        for (val entry : music.getWordFrequencies().entrySet()) { // Iterate over the word frequencies
             wordCount += entry.getValue();
         }
 
-        val uniqueWordDensity = wordCount == 0 ? 0.0F : (((float) uniqueWordCount / (float) wordCount) * 100.0F);
+        val uniqueWordDensity = wordCount == 0 ? 0.0f : (((float) uniqueWordCount / (float) wordCount) * 100.0f);
 
-        return new Statistics(wordCount, uniqueWordCount, uniqueWordDensity);
+        return new StatisticsModel(wordCount, uniqueWordCount, uniqueWordDensity);
+    }
+
+    public static LinkedHashMap<String, Float> generateArtistTrends(Artist artist) {
+        val trends = new LinkedHashMap<String, Float>();
+        var previous = 0.0f;
+
+        for (val album : artist.getAlbums()) {
+            val current = album.getUniqueWordDensity();
+            trends.put(album.getName(), (current - previous));
+
+            previous = current;
+        }
+
+        return trends;
+    }
+
+    public static LinkedHashMap<String, Float> generateAlbumTrends(Album album) {
+        val trends = new LinkedHashMap<String, Float>();
+        var previous = 0.0f;
+
+        for (val track : album.getTracks()) {
+            val current = track.getUniqueWordDensity();
+            trends.put(track.getName(), (current - previous));
+
+            previous = current;
+        }
+
+        return trends;
     }
 
     private static void mergeWordFrequencies(Map<String, Integer> wordFrequencies, Map<String, Integer> totalWordFrequencies) {
-        for (Entry<String, Integer> entry : wordFrequencies.entrySet()) { // Iterate over the word frequencies
+        for (val entry : wordFrequencies.entrySet()) { // Iterate over the word frequencies
             if (totalWordFrequencies.containsKey(entry.getKey())) { // Remove and count duplicates
                 totalWordFrequencies.put(entry.getKey(), (totalWordFrequencies.get(entry.getKey()) + entry.getValue()));
             } else { // Add unique entries
@@ -84,10 +114,14 @@ public class LyricAnalyser {
 
     private static ArrayList<String> cleanLyrics(String rawString) {
 
-        rawString = BRACKETS.matcher(rawString).replaceAll(REPLACEMENT); // Remove all song structure markers
-        rawString = PUNCTUATION.matcher(rawString).replaceAll(REPLACEMENT); // Remove all punctuation
-        rawString = rawString.toLowerCase();
+        rawString = rawString.toLowerCase(); // Convert the lyrics to lower case
+        rawString = SONG_MARKERS.matcher(rawString).replaceAll(REPLACEMENT); // Remove all song structure markers
+        rawString = MULTIPLIERS.matcher(rawString).replaceAll(REPLACEMENT);  // Remove all multipliers
+        rawString = OPEN_QUOTES.matcher(rawString).replaceAll(REPLACEMENT);  // Remove all opening quotes
+        rawString = CLOSE_QUOTES.matcher(rawString).replaceAll(REPLACEMENT); // Remove all closing quotes
+        rawString = PUNCTUATION.matcher(rawString).replaceAll(REPLACEMENT);  // Remove all other punctuation
+        rawString = rawString.strip(); // Strip all leading and trailing whitespace
 
-        return new ArrayList<>(Arrays.asList(rawString.split(WHITE_SPACE)));
+        return new ArrayList<>(Arrays.asList(rawString.split(WHITE_SPACE))); // Split on one or more whitespace
     }
 }

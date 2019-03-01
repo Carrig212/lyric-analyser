@@ -1,8 +1,6 @@
 package me.william.anderson.lyricanalyser.analyser;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import static java.util.Collections.reverseOrder;
@@ -12,7 +10,7 @@ import static java.util.stream.Collectors.toMap;
 
 @SuppressWarnings("unused")
 class Sorter {
-    static HashMap<String, Integer> sortHashMapByValueAscending(Map<String, Integer> map) {
+    static LinkedHashMap<String, Integer> sortHashMapByValueAscending(LinkedHashMap<String, Integer> map) {
         return map
                 .entrySet()
                 .stream()
@@ -22,7 +20,7 @@ class Sorter {
                                 LinkedHashMap::new));
     }
 
-    static HashMap<String, Integer> sortHashMapByValueDescending(Map<String, Integer> map) {
+    static LinkedHashMap<String, Integer> sortHashMapByValueDescending(LinkedHashMap<String, Integer> map) {
         return map
                 .entrySet()
                 .stream()
@@ -32,7 +30,7 @@ class Sorter {
                                 LinkedHashMap::new));
     }
 
-    static HashMap<String, Integer> sortHashMapByKeyAscending(Map<String, Integer> map) {
+    static LinkedHashMap<String, Integer> sortHashMapByKeyAscending(LinkedHashMap<String, Integer> map) {
         return map
                 .entrySet()
                 .stream()
@@ -42,7 +40,7 @@ class Sorter {
                                 LinkedHashMap::new));
     }
 
-    static HashMap<String, Integer> sortHashMapByKeyDescending(Map<String, Integer> map) {
+    static LinkedHashMap<String, Integer> sortHashMapByKeyDescending(LinkedHashMap<String, Integer> map) {
         return map
                 .entrySet()
                 .stream()
