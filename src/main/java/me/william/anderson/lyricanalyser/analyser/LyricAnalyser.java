@@ -11,10 +11,14 @@ import me.william.anderson.lyricanalyser.model.Music;
 import me.william.anderson.lyricanalyser.model.data.StatisticsModel;
 
 import lombok.val;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static me.william.anderson.lyricanalyser.analyser.Constants.*;
 
 public class LyricAnalyser {
+
+    private static final Logger logger = LoggerFactory.getLogger(LyricAnalyser.class);
 
     public static LinkedHashMap<String, Integer> parseTrackLyrics(String rawString) {
         var wordFrequencies = new LinkedHashMap<String, Integer>();

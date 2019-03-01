@@ -22,12 +22,16 @@ import lombok.NonNull;
 import lombok.val;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static me.william.anderson.lyricanalyser.model.manager.Constants.*;
 
 @Component
 @SuppressWarnings("Duplicates")
 public class MusicEntityBuilder {
+
+    private static final Logger logger = LoggerFactory.getLogger(MusicEntityBuilder.class);
 
     @NonNull
     private final ApiConsumer consumer;

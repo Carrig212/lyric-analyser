@@ -10,10 +10,13 @@ import me.william.anderson.lyricanalyser.model.Music;
 import org.springframework.stereotype.Component;
 
 import lombok.val;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class DuplicateRemover {
 
+    private static final Logger logger = LoggerFactory.getLogger(DuplicateRemover.class);
 
     public void removeDuplicates(Artist artist) {
         Collection<Album> albums = artist.getAlbums();

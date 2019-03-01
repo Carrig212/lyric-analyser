@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.val;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static me.william.anderson.lyricanalyser.controller.Constants.*;
 
@@ -21,6 +23,8 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 @RestController
 @RequestMapping(TRACKS_ROUTE)
 public class TrackController {
+
+    private static final Logger logger = LoggerFactory.getLogger(TrackRepository.class);
 
     private final TrackRepository trackRepository;
 

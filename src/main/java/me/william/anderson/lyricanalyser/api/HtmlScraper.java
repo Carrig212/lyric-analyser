@@ -9,10 +9,14 @@ import me.william.anderson.lyricanalyser.model.data.TrackDataModel;
 import lombok.val;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static me.william.anderson.lyricanalyser.api.Constants.*;
 
 public class HtmlScraper {
+
+    private static final Logger logger = LoggerFactory.getLogger(HtmlScraper.class);
 
     public static long scrapeArtistId(String url) throws IOException, MalformedRequestException {
         // Get the meta tag with the artist ID from the head

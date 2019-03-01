@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.val;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static me.william.anderson.lyricanalyser.controller.Constants.*;
 
@@ -23,6 +25,8 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 @RestController
 @RequestMapping(ALBUMS_ROUTE)
 public class AlbumController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AlbumController.class);
 
     private final AlbumRepository albumRepository;
     private final TrackRepository trackRepository;

@@ -13,12 +13,16 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import lombok.NonNull;
 import lombok.val;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static me.william.anderson.lyricanalyser.api.Constants.*;
 
 @Component
 @PropertySource("application.properties")
 public class ApiConsumer {
+
+    private static final Logger logger = LoggerFactory.getLogger(ApiConsumer.class);
 
     @NonNull
     @Value("${client.access.token}")
