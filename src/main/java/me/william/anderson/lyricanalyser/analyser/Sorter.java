@@ -3,9 +3,6 @@ package me.william.anderson.lyricanalyser.analyser;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import static java.util.Collections.reverseOrder;
 import static java.util.Map.Entry.comparingByKey;
 import static java.util.Map.Entry.comparingByValue;
@@ -13,8 +10,6 @@ import static java.util.stream.Collectors.toMap;
 
 @SuppressWarnings("unused")
 class Sorter {
-
-    private static final Logger logger = LoggerFactory.getLogger(Sorter.class);
 
     static LinkedHashMap<String, Integer> sortHashMapByValueAscending(LinkedHashMap<String, Integer> map) {
         return map

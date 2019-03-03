@@ -38,6 +38,7 @@ public class AlbumController {
 
     @GetMapping
     public ResponseEntity<Resources<Resource<Album>>> findAll() {
+        logger.info("Processing \"Find All Albums\" request.");
 
         val albums = albumRepository.findAll().stream()
                 .map(album -> new Resource<>(album,
@@ -54,6 +55,8 @@ public class AlbumController {
 
     @GetMapping(SEARCH_ROUTE)
     public ResponseEntity<Resources<Resource<Album>>> search(@RequestParam(NAME_PARAM) String name) {
+        logger.info("Processing Album search for query \"" + name + "\".");
+
         val albums = albumRepository.findAllByNameIsLike(name).stream()
                 .map(album -> new Resource<>(album,
                         linkTo(methodOn(AlbumController.class).findOne(album.getId())).withSelfRel(),
@@ -69,6 +72,7 @@ public class AlbumController {
 
     @GetMapping(FIND_ONE_ROUTE)
     public ResponseEntity<Resource<Album>> findOne(@PathVariable long id) {
+        logger.info("Processing request for Album \"" + id + "\".");
 
         return albumRepository.findById(id)
                 .map(album -> new Resource<>(album,
@@ -82,6 +86,8 @@ public class AlbumController {
 
     @GetMapping(FIND_TRACKS_ROUTE)
     public ResponseEntity<Resources<Resource<Track>>> findTracks(@PathVariable long id) {
+        logger.info("Processing Tracks request for Album \"" + id + "\".");
+
         val tracks = trackRepository.findAllByAlbumId(id).stream()
                 .map(track -> new Resource<>(track,
                         linkTo(methodOn(TrackController.class).findOne(track.getId())).withSelfRel(),
@@ -101,11 +107,14 @@ public class AlbumController {
         val album = albumRepository.getOne(id);
 
         if (album == null) {
+            logger.info("Album \"" + id + "\" could not be found.");
             return ResponseEntity.notFound().build();
         }
 
         album.setDuplicate(!album.isDuplicate());
         albumRepository.save(album);
+
+        logger.info("Album \"" + album.getName() + "\" has been marked as " + (album.isDuplicate() ? "" : "not") + " a duplicate.");
 
         return ResponseEntity.noContent().build();
     }

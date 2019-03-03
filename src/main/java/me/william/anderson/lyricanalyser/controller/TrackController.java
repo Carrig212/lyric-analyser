@@ -34,6 +34,8 @@ public class TrackController {
 
     @GetMapping
     public ResponseEntity<Resources<Resource<Track>>> findAll() {
+        logger.info("Processing \"Find All Tracks\" request.");
+
         val tracks = trackRepository.findAll().stream()
                 .map(track -> new Resource<>(track,
                         linkTo(methodOn(TrackController.class).findOne(track.getId())).withSelfRel(),
@@ -48,6 +50,8 @@ public class TrackController {
 
     @GetMapping(SEARCH_ROUTE)
     public ResponseEntity<Resources<Resource<Track>>> search(@RequestParam(NAME_PARAM) String name) {
+        logger.info("Processing Track search for query \"" + name + "\".");
+
         val tracks = trackRepository.findAllByNameIsLike(name).stream()
                 .map(track -> new Resource<>(track,
                         linkTo(methodOn(TrackController.class).findOne(track.getId())).withSelfRel(),
@@ -62,6 +66,7 @@ public class TrackController {
 
     @GetMapping(FIND_ONE_ROUTE)
     public ResponseEntity<Resource<Track>> findOne(@PathVariable long id) {
+        logger.info("Processing request for Track \"" + id + "\".");
 
         return trackRepository.findById(id)
                 .map(track -> new Resource<>(track,
@@ -77,11 +82,14 @@ public class TrackController {
         val track = trackRepository.getOne(id);
 
         if (track == null) {
+            logger.info("Track \"" + id + "\" could not be found.");
             return ResponseEntity.notFound().build();
         }
 
         track.setDuplicate(!track.isDuplicate());
         trackRepository.save(track);
+
+        logger.info("Track \"" + track.getName() + "\" has been marked as " + (track.isDuplicate() ? "" : "not") + " a duplicate.");
 
         return ResponseEntity.noContent().build();
     }

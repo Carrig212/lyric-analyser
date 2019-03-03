@@ -51,6 +51,7 @@ public class ArtistController {
 
     @GetMapping
     public ResponseEntity<Resources<Resource<Artist>>> findAll() {
+        logger.info("Processing \"Find All Artists\" request.");
 
         val artists = artistRepository.findAll().stream()
                 .map(artist -> new Resource<>(artist,
@@ -66,6 +67,8 @@ public class ArtistController {
 
     @GetMapping(SEARCH_ROUTE)
     public ResponseEntity<Resources<Resource<Artist>>> search(@RequestParam(NAME_PARAM) String name) {
+        logger.info("Processing Artist search for query \"" + name + "\".");
+
         val artists = artistRepository.findAllByNameIsLike(name).stream()
                 .map(artist -> new Resource<>(artist,
                         linkTo(methodOn(ArtistController.class).findOne(artist.getId())).withSelfRel(),
@@ -80,6 +83,7 @@ public class ArtistController {
 
     @GetMapping(FIND_ONE_ROUTE)
     public ResponseEntity<Resource<Artist>> findOne(@PathVariable long id) {
+        logger.info("Processing request for Artist \"" + id + "\".");
 
         return artistRepository.findById(id)
                 .map(artist -> new Resource<>(artist,
@@ -92,6 +96,8 @@ public class ArtistController {
 
     @GetMapping(FIND_ALBUMS_ROUTE)
     public ResponseEntity<Resources<Resource<Album>>> findAlbums(@PathVariable long id) {
+        logger.info("Processing Albums request for Artist \"" + id + "\".");
+
         val albums = albumRepository.findAllByArtistId(id).stream()
                 .map(album -> new Resource<>(album,
                         linkTo(methodOn(AlbumController.class).findOne(album.getId())).withSelfRel(),
@@ -114,6 +120,7 @@ public class ArtistController {
         try {
             apiId = HtmlScraper.scrapeArtistId(url);
         } catch (IOException e) {
+            logger.error("URL \"" + url + "\" could not be scraped for an Artist ID.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         } catch (MalformedRequestException e) {
             return ResponseEntity.badRequest().build();
@@ -122,16 +129,20 @@ public class ArtistController {
         var artist = artistRepository.findByApiId(apiId);
 
         if (artist != null) {
+            logger.info("Artist \"" + artist.getName() + "\" already exists.");
             return findOne(artist.getId()); // If the artist already exists in the database, return that artist
         }
 
         try {
             artist = builder.buildArtist(url); // Otherwise, analyse the artist
         } catch (Exception e) {
+            logger.error("Artist \"" + submission.getUrl() + "\" could not be created, as it threw a fatal exception: \"" + e.toString() + "\".");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         artistRepository.save(artist);
+
+        logger.info("Artist \"" + artist.getName() + "\" has been created successfully.");
 
         return ResponseEntity.created(
                 linkTo(methodOn(ArtistController.class).findOne(artist.getId())).toUri()).build();
@@ -143,11 +154,14 @@ public class ArtistController {
         val artist = artistRepository.getOne(id);
 
         if (artist == null) {
+            logger.info("Artist \"" + id + "\" could not be found.");
             return ResponseEntity.notFound().build();
         }
 
         duplicateRemover.removeDuplicates(artist);
         artistRepository.save(artist);
+
+        logger.info("Artist \"" + artist.getName() + "\" has been updated successfully.");
 
         return ResponseEntity.noContent().build();
     }

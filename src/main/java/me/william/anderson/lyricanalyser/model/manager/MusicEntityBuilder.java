@@ -42,6 +42,8 @@ public class MusicEntityBuilder {
     }
 
     public Artist buildArtist(String url) throws IOException, MalformedRequestException, StatusCodeException, UnirestException {
+        logger.info("Building Artist \"" + url + "\".");
+
         val artist = new Artist();
 
         val json = consumer.getArtist(HtmlScraper.scrapeArtistId(url));
@@ -57,25 +59,34 @@ public class MusicEntityBuilder {
         buildStatistics(artist);
         artist.setTrends(LyricAnalyser.generateArtistTrends(artist));
 
+        logger.info("Artist \"" + artist.getName() + "\" was built successfully.");
+
         return artist;
     }
 
     private ArrayList<Album> buildAlbumList(Artist artist) throws MalformedRequestException, IOException {
+        logger.info("Building Album list for Artist \"" + artist.getName() + "\".");
+
         var albums = new ArrayList<Album>();
 
         for (var id : HtmlScraper.scrapeAlbumIdList(artist.getApiId())) {
             try {
                 albums.add(buildAlbum(consumer.getAlbum(id), artist));
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                logger.debug("Album \"" + id + "\" has been excluded from analysis, as it threw a fatal exception: \"" + e.toString() + "\".");
             }
         }
 
         Collections.sort(albums);
 
+        logger.info("Album list for Artist \"" + artist.getName() + "\" was built successfully.");
+
         return albums;
     }
 
     private Album buildAlbum(JSONObject json, Artist artist) throws MalformedRequestException, IOException {
+        logger.info("Building Album \"" + getString(json, NAME).toLowerCase() + "\".");
+
         val album = new Album();
 
         album.setApiId(json.getLong(ID));
@@ -92,24 +103,33 @@ public class MusicEntityBuilder {
         buildStatistics(album);
         album.setTrends(LyricAnalyser.generateAlbumTrends(album));
 
+        logger.info("Album \"" + album.getName() + "\" was built successfully.");
+
         return album;
     }
 
     private ArrayList<Track> buildTrackList(Album album) throws MalformedRequestException, IOException {
+        logger.info("Building Track list for Album \"" + album.getName() + "\".");
+
         val tracks = new ArrayList<Track>();
 
         for (var trackData : HtmlScraper.scrapeTrackList(album.getGeniusUrl())) {
             try {
                 val json = consumer.getTrack(trackData.getId());
                 tracks.add(buildTrack(json, album, trackData.getLyrics()));
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                logger.debug("Track \"" + trackData.getId() + "\" has been excluded from analysis, as it threw a fatal exception: \"" + e.toString() + "\".");
             }
         }
+
+        logger.info("Track list for Album \"" + album.getName() + "\" was built successfully.");
 
         return tracks;
     }
 
     private Track buildTrack(JSONObject json, Album album, String lyrics) {
+        logger.info("Building Track \"" + getString(json, TITLE).toLowerCase() + "\".");
+
         val track = new Track();
 
         track.setApiId(json.getLong(ID));
@@ -130,24 +150,31 @@ public class MusicEntityBuilder {
 
         track.setAlbum(album);
 
-        track.setWordFrequencies(LyricAnalyser.parseTrackLyrics(track.getLyrics()));
+        track.setWordFrequencies(LyricAnalyser.parseTrackLyrics(track));
         buildStatistics(track);
+
+        logger.info("Track \"" + track.getName() + "\" was built successfully.");
 
         return track;
     }
 
     private void buildStatistics(Music music) {
+        logger.debug("Building statistics for " + music.getClass().getSimpleName() + " \"" + music.getName() + "\".");
+
         val statistics = LyricAnalyser.generateStatistics(music);
 
         music.setUniqueWordCount(statistics.getUniqueWordCount());
         music.setWordCount(statistics.getWordCount());
         music.setUniqueWordDensity(statistics.getUniqueWordDensity());
+
+        logger.debug("Statistics have been built successfully for " + music.getClass().getSimpleName() + " \"" + music.getName() + "\".");
     }
 
     private String getString(JSONObject json, String key) {
         try {
             return json.getString(key);
         } catch (JSONException e) {
+            logger.debug("Property key \"" + key + "\" could not be found. It has been replaced with a default value.");
             return "N/A";
         }
     }

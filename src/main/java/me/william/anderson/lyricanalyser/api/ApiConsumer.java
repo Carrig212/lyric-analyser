@@ -31,6 +31,8 @@ public class ApiConsumer {
     public JSONObject getArtist(long id) throws StatusCodeException, UnirestException {
         val url = API_GENIUS_COM + ARTISTS + id;
 
+        logger.debug("Sending API request to URL " + url + " for Artist \"" + id + "\".");
+
         return sendRequest(url)
                 .getBody()
                 .getObject()
@@ -41,6 +43,8 @@ public class ApiConsumer {
     public JSONObject getAlbum(long id) throws StatusCodeException, UnirestException {
         val url = API_GENIUS_COM + ALBUMS + id;
 
+        logger.debug("Sending API request to URL " + url + " for Album \"" + id + "\".");
+
         return sendRequest(url)
                 .getBody()
                 .getObject()
@@ -50,6 +54,8 @@ public class ApiConsumer {
 
     public JSONObject getTrack(long id) throws StatusCodeException, UnirestException {
         val url = API_GENIUS_COM + SONGS + id;
+
+        logger.debug("Sending API request to URL " + url + " for Track \"" + id + "\".");
 
         return sendRequest(url)
                 .getBody()
@@ -67,8 +73,11 @@ public class ApiConsumer {
 
         // Since we're only querying the api, 200 OK is the only acceptable status code
         if (response.getStatus() != STATUS) {
+            logger.warn("URL " + url + " responded with incorrect status code \"" + response.getStatus() + "\".");
             throw new StatusCodeException(STATUS, response.getStatus(), url);
         }
+
+        logger.debug("URL + \"" + url + "\" responded with status code \"" + response.getStatus() + "\".");
 
         return response;
     }

@@ -8,6 +8,7 @@ import java.util.Map;
 import me.william.anderson.lyricanalyser.model.Album;
 import me.william.anderson.lyricanalyser.model.Artist;
 import me.william.anderson.lyricanalyser.model.Music;
+import me.william.anderson.lyricanalyser.model.Track;
 import me.william.anderson.lyricanalyser.model.data.StatisticsModel;
 
 import lombok.val;
@@ -20,9 +21,11 @@ public class LyricAnalyser {
 
     private static final Logger logger = LoggerFactory.getLogger(LyricAnalyser.class);
 
-    public static LinkedHashMap<String, Integer> parseTrackLyrics(String rawString) {
+    public static LinkedHashMap<String, Integer> parseTrackLyrics(Track track) {
+        logger.debug("Parsing lyrics for Track \"" + track.getName() + "\".");
+
+        val words = cleanLyrics(track.getLyrics());
         var wordFrequencies = new LinkedHashMap<String, Integer>();
-        val words = cleanLyrics(rawString);
 
         for (val word : words) {
             wordFrequencies.put(word, !wordFrequencies.containsKey(word) ? 1 : wordFrequencies.get(word) + 1); // Remove and count duplicates
@@ -30,10 +33,14 @@ public class LyricAnalyser {
 
         wordFrequencies = Sorter.sortHashMapByValueDescending(wordFrequencies);
 
+        logger.debug("Lyrics have been successfully parsed for Track \"" + track.getName() + "\".");
+
         return wordFrequencies;
     }
 
     public static LinkedHashMap<String, Integer> parseAlbumLyrics(Album album) {
+        logger.debug("Parsing lyrics for Album \"" + album.getName() + "\".");
+
         var wordFrequencies = new LinkedHashMap<String, Integer>();
 
         for (val track : album.getTracks()) {
@@ -46,10 +53,14 @@ public class LyricAnalyser {
 
         wordFrequencies = Sorter.sortHashMapByValueDescending(wordFrequencies);
 
+        logger.debug("Lyrics have been successfully parsed for Album \"" + album.getName() + "\".");
+
         return wordFrequencies;
     }
 
     public static LinkedHashMap<String, Integer> parseArtistLyrics(Artist artist) {
+        logger.debug("Parsing lyrics for Artist \"" + artist.getName() + "\".");
+
         var wordFrequencies = new LinkedHashMap<String, Integer>();
 
         for (val album : artist.getAlbums()) {
@@ -62,10 +73,14 @@ public class LyricAnalyser {
 
         wordFrequencies = Sorter.sortHashMapByValueDescending(wordFrequencies);
 
+        logger.debug("Lyrics have been successfully parsed for Artist \"" + artist.getName() + "\".");
+
         return wordFrequencies;
     }
 
     public static StatisticsModel generateStatistics(Music music) {
+        logger.debug("Generating statistics for " + music.getClass().getSimpleName() + " \"" + music.getName() + "\".");
+
         val uniqueWordCount = music.getWordFrequencies().size();
         var wordCount = 0;
 
@@ -75,10 +90,14 @@ public class LyricAnalyser {
 
         val uniqueWordDensity = wordCount == 0 ? 0.0f : (((float) uniqueWordCount / (float) wordCount) * 100.0f);
 
+        logger.debug("Statistics have been generated successfully for " + music.getClass().getSimpleName() + " \"" + music.getName() + "\".");
+
         return new StatisticsModel(wordCount, uniqueWordCount, uniqueWordDensity);
     }
 
     public static LinkedHashMap<String, Float> generateArtistTrends(Artist artist) {
+        logger.debug("Generating trends for Artist \"" + artist.getName() + "\".");
+
         val trends = new LinkedHashMap<String, Float>();
         var previous = 0.0f;
 
@@ -89,10 +108,14 @@ public class LyricAnalyser {
             previous = current;
         }
 
+        logger.debug("Trends have been generated successfully for Artist \"" + artist.getName() + "\".");
+
         return trends;
     }
 
     public static LinkedHashMap<String, Float> generateAlbumTrends(Album album) {
+        logger.debug("Generating trends for Album \"" + album.getName() + "\".");
+
         val trends = new LinkedHashMap<String, Float>();
         var previous = 0.0f;
 
@@ -102,6 +125,8 @@ public class LyricAnalyser {
 
             previous = current;
         }
+
+        logger.debug("Trends have been generated successfully for Album \"" + album.getName() + "\".");
 
         return trends;
     }
