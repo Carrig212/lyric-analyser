@@ -1,9 +1,6 @@
 package me.william.anderson.lyricanalyser.analyser;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import me.william.anderson.lyricanalyser.model.Album;
 import me.william.anderson.lyricanalyser.model.Artist;
@@ -20,6 +17,8 @@ import static me.william.anderson.lyricanalyser.analyser.Constants.*;
 public class LyricAnalyser {
 
     private static final Logger logger = LoggerFactory.getLogger(LyricAnalyser.class);
+
+    private static Set<Long> apiIds = new HashSet<>();
 
     public static LinkedHashMap<String, Integer> parseTrackLyrics(Track track) {
         logger.debug("Parsing lyrics for Track \"" + track.getName() + "\".");
@@ -44,10 +43,11 @@ public class LyricAnalyser {
         var wordFrequencies = new LinkedHashMap<String, Integer>();
 
         for (val track : album.getTracks()) {
-            if (track.isDuplicate()) {
+            if (track.isDuplicate() || apiIds.contains(track.getApiId())) {
                 continue;
             }
 
+            apiIds.add(track.getApiId());
             mergeWordFrequencies(track.getWordFrequencies(), wordFrequencies);
         }
 
@@ -64,14 +64,16 @@ public class LyricAnalyser {
         var wordFrequencies = new LinkedHashMap<String, Integer>();
 
         for (val album : artist.getAlbums()) {
-            if (album.isDuplicate()) {
+            if (album.isDuplicate() || apiIds.contains(album.getApiId())) {
                 continue;
             }
 
+            apiIds.add(album.getApiId());
             mergeWordFrequencies(album.getWordFrequencies(), wordFrequencies);
         }
 
         wordFrequencies = Sorter.sortHashMapByValueDescending(wordFrequencies);
+        apiIds = new HashSet<>();
 
         logger.debug("Lyrics have been successfully parsed for Artist \"" + artist.getName() + "\".");
 
@@ -131,7 +133,7 @@ public class LyricAnalyser {
         return trends;
     }
 
-    private static void mergeWordFrequencies(Map<String, Integer> wordFrequencies, Map<String, Integer> totalWordFrequencies) {
+    static void mergeWordFrequencies(Map<String, Integer> wordFrequencies, Map<String, Integer> totalWordFrequencies) {
         for (val entry : wordFrequencies.entrySet()) { // Iterate over the word frequencies
             if (totalWordFrequencies.containsKey(entry.getKey())) { // Remove and count duplicates
                 totalWordFrequencies.put(entry.getKey(), (totalWordFrequencies.get(entry.getKey()) + entry.getValue()));
@@ -141,7 +143,7 @@ public class LyricAnalyser {
         }
     }
 
-    private static ArrayList<String> cleanLyrics(String rawString) {
+    static ArrayList<String> cleanLyrics(String rawString) {
 
         rawString = rawString.toLowerCase(); // Convert the lyrics to lower case
         rawString = SONG_MARKERS.matcher(rawString).replaceAll(REPLACEMENT); // Remove all song structure markers
