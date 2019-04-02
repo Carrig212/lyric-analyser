@@ -1,0 +1,417 @@
+{
+	"info": {
+		"_postman_id": "5c99fc38-41c2-4c2d-8897-8f532c0ce7cc",
+		"name": "Lyric Analyser API End-To-End Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create Artist",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "45e2cea0-f420-45b9-af7f-51106ab31c8e",
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Redirect location is correct\", function () {",
+							"   pm.response.to.have.header(\"Location\");",
+							"   pm.response.to.be.header(\"Location\", pm.environment.get(\"url\") + \"/artists/1\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"url\" : \"{{artist_url}}\"\n}"
+				},
+				"url": {
+					"raw": "{{url}}/artists/submit",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"artists",
+						"submit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Artist",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a99e021d-e747-4272-9e53-b14830a4c742",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"ID is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.id).to.eql(1);",
+							"});",
+							"",
+							"pm.test(\"API ID is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.apiId).to.eql(589);",
+							"});",
+							"",
+							"pm.test(\"Name is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.name).to.eql(\"bon iver\");",
+							"});",
+							"",
+							"pm.test(\"Word count is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.wordCount).to.eql(7430);",
+							"});",
+							"",
+							"pm.test(\"Unique word count is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.uniqueWordCount).to.eql(1895);",
+							"});",
+							"",
+							"pm.test(\"Unique word density is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.uniqueWordDensity).to.eql(25.504711);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/artists/1",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"artists",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Album",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "bc2c28c3-c368-43ff-9fda-e31a1eb56d3c",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"ID is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.id).to.eql(2);",
+							"});",
+							"",
+							"pm.test(\"Name is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.name).to.eql(\"for emma, forever ago\");",
+							"});",
+							"",
+							"pm.test(\"API ID is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.apiId).to.eql(14946);",
+							"});",
+							"",
+							"pm.test(\"Word count is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.wordCount).to.eql(1322);",
+							"});",
+							"",
+							"pm.test(\"Unique word count is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.uniqueWordCount).to.eql(425);",
+							"});",
+							"",
+							"pm.test(\"Unique word density is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.uniqueWordDensity).to.eql(32.14826);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/albums/2",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"albums",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Track",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "1fd7f4d2-2a92-4d18-b0b4-8fa59964df03",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"ID is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.id).to.eql(3);",
+							"});",
+							"",
+							"pm.test(\"Name is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.name).to.eql(\"flume\");",
+							"});",
+							"",
+							"pm.test(\"API ID is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.apiId).to.eql(75139);",
+							"});",
+							"",
+							"pm.test(\"Word count is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.wordCount).to.eql(86);",
+							"});",
+							"",
+							"pm.test(\"Unique word count is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.uniqueWordCount).to.eql(52);",
+							"});",
+							"",
+							"pm.test(\"Unique word density is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.uniqueWordDensity).to.eql(60.465115);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/tracks/3",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"tracks",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Mark Duplicate Album",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "969fb52a-71db-4dd9-acb4-37cbca749786",
+						"exec": [
+							"pm.test(\"Status code is 204\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/albums/2/update",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"albums",
+						"2",
+						"update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Artist",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "fc1a435c-c6a9-4835-ac8a-b2993af05e77",
+						"exec": [
+							"pm.test(\"Status code is 204\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/artists/1/update",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"artists",
+						"1",
+						"update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Artist",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ce7abfa1-43cf-4fee-ab92-31de4fc39b5e",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"ID is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.id).to.eql(1);",
+							"});",
+							"",
+							"pm.test(\"API ID is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.apiId).to.eql(589);",
+							"});",
+							"",
+							"pm.test(\"Name is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.name).to.eql(\"bon iver\");",
+							"});",
+							"",
+							"pm.test(\"Word count is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.wordCount).to.eql(6108);",
+							"});",
+							"",
+							"pm.test(\"Unique word count is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.uniqueWordCount).to.eql(1670);",
+							"});",
+							"",
+							"pm.test(\"Unique word density is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.uniqueWordDensity).to.eql(27.341192);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/artists/1",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"artists",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "2b47f308-0f51-4abc-8d1e-f7f6e90afac0",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "3805c838-5278-4d3e-9706-3e3287fee98f",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
